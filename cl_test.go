@@ -23,7 +23,21 @@ func TestHello(t *testing.T) {
 		data[i] = rand.Float32()
 	}
 
-	devices, err := GetDevices(DeviceTypeAll)
+	platforms, err := GetPlatforms()
+	if err != nil {
+		t.Fatalf("Failed to get platforms: %+v", err)
+	}
+	for i, p := range platforms {
+		t.Logf("Platform %d:", i)
+		t.Logf("  Name: %s", p.Name())
+		t.Logf("  Vendor: %s", p.Vendor())
+		t.Logf("  Profile: %s", p.Profile())
+		t.Logf("  Version: %s", p.Version())
+		t.Logf("  Extensions: %s", p.Extensions())
+	}
+	platform := platforms[0]
+
+	devices, err := platform.GetDevices(DeviceTypeAll)
 	if err != nil {
 		t.Fatalf("Failed to get devices: %+v", err)
 	}
@@ -37,8 +51,35 @@ func TestHello(t *testing.T) {
 		}
 		t.Logf("Device %d:", i)
 		t.Logf("  Type: %s", d.Type())
-		t.Logf("  Name: %+v", d.Name())
-		t.Logf("  Vendor: %+v", d.Vendor())
+		t.Logf("  Name: %s", d.Name())
+		t.Logf("  Vendor: %s", d.Vendor())
+		t.Logf("  Built-In Kernels: %s", d.BuiltInKernels())
+		t.Logf("  Extensions: %s", d.Extensions())
+		t.Logf("  OpenCL C Version: %s", d.OpenCLCVersion())
+		t.Logf("  Profile: %s", d.Profile())
+		t.Logf("  Version: %s", d.Version())
+		t.Logf("  Driver Version: %s", d.DriverVersion())
+		t.Logf("  Address Bits: %d", d.AddressBits())
+		t.Logf("  Global Memory Cacheline Size: %d", d.GlobalMemCachelineSize())
+		t.Logf("  Max Clock Frequency: %d", d.MaxClockFrequency())
+		t.Logf("  Max Compute Units: %d", d.MaxComputeUnits())
+		t.Logf("  Max Constant Args: %d", d.MaxConstantArgs())
+		t.Logf("  Max Parameter Size: %d", d.MaxParameterSize())
+		t.Logf("  Max Read-Image Args: %d", d.MaxReadImageArgs())
+		t.Logf("  Max Samplers: %d", d.MaxSamplers())
+		t.Logf("  Max Work Group Size: %d", d.MaxWorkGroupSize())
+		t.Logf("  Max Work Item Dimensions: %d", d.MaxWorkItemDimensions())
+		t.Logf("  Max Write-Image Args: %d", d.MaxWriteImageArgs())
+		t.Logf("  Memory Base Address Alignment: %d", d.MemBaseAddrAlign())
+		t.Logf("  Image2D Max Dimensions: %d x %d", d.Image2DMaxWidth(), d.Image2DMaxHeight())
+		t.Logf("  Available: %+v", d.Available())
+		t.Logf("  Compiler Available: %+v", d.CompilerAvailable())
+		t.Logf("  Little Endian: %+v", d.EndianLittle())
+		t.Logf("  Error Correction Supported: %+v", d.ErrorCorrectionSupport())
+		t.Logf("  Host Unified Memory: %+v", d.HostUnifiedMemory())
+		t.Logf("  Image Support: %+v", d.ImageSupport())
+		t.Logf("  Double FP Config: %s", d.DoubleFPConfig())
+		t.Logf("  Half FP Config: %s", d.HalfFPConfig())
 	}
 	if deviceIndex < 0 {
 		deviceIndex = 0
