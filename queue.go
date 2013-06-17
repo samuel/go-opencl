@@ -30,13 +30,16 @@ func (q *CommandQueue) Finish() error {
 	return toError(C.clFinish(q.clQueue))
 }
 
+// Enqueues a command to copy a buffer object to another buffer object.
+// TODO: event wait list
+func (q *CommandQueue) EnqueueCopyBuffer(srcBuffer, dstBuffer *Buffer, srcOffset, dstOffset, byteCount int) error {
+	return toError(C.clEnqueueCopyBuffer(q.clQueue, srcBuffer.clBuffer, dstBuffer.clBuffer, C.size_t(srcOffset), C.size_t(dstOffset), C.size_t(byteCount), 0, nil, nil))
+}
+
+// Enqueue commands to write to a buffer object from host memory.
 // TODO: event wait list
 func (q *CommandQueue) EnqueueWriteBuffer(buffer *Buffer, blocking bool, offset, dataSize int, dataPtr unsafe.Pointer) error {
-	cBlocking := C.cl_bool(C.CL_FALSE)
-	if blocking {
-		cBlocking = C.CL_TRUE
-	}
-	return toError(C.clEnqueueWriteBuffer(q.clQueue, buffer.clBuffer, cBlocking, C.size_t(offset), C.size_t(dataSize), dataPtr, 0, nil, nil))
+	return toError(C.clEnqueueWriteBuffer(q.clQueue, buffer.clBuffer, clBool(blocking), C.size_t(offset), C.size_t(dataSize), dataPtr, 0, nil, nil))
 }
 
 func (q *CommandQueue) EnqueueWriteBufferFloat32(buffer *Buffer, blocking bool, offset int, data []float32) error {
@@ -47,11 +50,7 @@ func (q *CommandQueue) EnqueueWriteBufferFloat32(buffer *Buffer, blocking bool, 
 
 // TODO: event wait list
 func (q *CommandQueue) EnqueueReadBuffer(buffer *Buffer, blocking bool, offset, dataSize int, dataPtr unsafe.Pointer) error {
-	cBlocking := C.cl_bool(C.CL_FALSE)
-	if blocking {
-		cBlocking = C.CL_TRUE
-	}
-	return toError(C.clEnqueueReadBuffer(q.clQueue, buffer.clBuffer, cBlocking, C.size_t(offset), C.size_t(dataSize), dataPtr, 0, nil, nil))
+	return toError(C.clEnqueueReadBuffer(q.clQueue, buffer.clBuffer, clBool(blocking), C.size_t(offset), C.size_t(dataSize), dataPtr, 0, nil, nil))
 }
 
 func (q *CommandQueue) EnqueueReadBufferFloat32(buffer *Buffer, blocking bool, offset int, data []float32) error {
@@ -95,34 +94,14 @@ func (q *CommandQueue) EnqueueNDRangeKernel(kernel *Kernel, globalWorkOffset, gl
 
 // TODO: event wait list
 func (q *CommandQueue) EnqueueReadImage(image *Buffer, blocking bool, origin, region [3]int, rowPitch, slicePitch int, data []byte) error {
-	cBlocking := C.cl_bool(C.CL_FALSE)
-	if blocking {
-		cBlocking = C.CL_TRUE
-	}
-	var cOrigin [3]C.size_t
-	cOrigin[0] = C.size_t(origin[0])
-	cOrigin[1] = C.size_t(origin[1])
-	cOrigin[2] = C.size_t(origin[2])
-	var cRegion [3]C.size_t
-	cRegion[0] = C.size_t(region[0])
-	cRegion[1] = C.size_t(region[1])
-	cRegion[2] = C.size_t(region[2])
-	return toError(C.clEnqueueReadImage(q.clQueue, image.clBuffer, cBlocking, &cOrigin[0], &cRegion[0], C.size_t(rowPitch), C.size_t(slicePitch), unsafe.Pointer(&data[0]), 0, nil, nil))
+	cOrigin := sizeT3(origin)
+	cRegion := sizeT3(region)
+	return toError(C.clEnqueueReadImage(q.clQueue, image.clBuffer, clBool(blocking), &cOrigin[0], &cRegion[0], C.size_t(rowPitch), C.size_t(slicePitch), unsafe.Pointer(&data[0]), 0, nil, nil))
 }
 
 // TODO: event wait list
 func (q *CommandQueue) EnqueueWriteImage(image *Buffer, blocking bool, origin, region [3]int, rowPitch, slicePitch int, data []byte) error {
-	cBlocking := C.cl_bool(C.CL_FALSE)
-	if blocking {
-		cBlocking = C.CL_TRUE
-	}
-	var cOrigin [3]C.size_t
-	cOrigin[0] = C.size_t(origin[0])
-	cOrigin[1] = C.size_t(origin[1])
-	cOrigin[2] = C.size_t(origin[2])
-	var cRegion [3]C.size_t
-	cRegion[0] = C.size_t(region[0])
-	cRegion[1] = C.size_t(region[1])
-	cRegion[2] = C.size_t(region[2])
-	return toError(C.clEnqueueWriteImage(q.clQueue, image.clBuffer, cBlocking, &cOrigin[0], &cRegion[0], C.size_t(rowPitch), C.size_t(slicePitch), unsafe.Pointer(&data[0]), 0, nil, nil))
+	cOrigin := sizeT3(origin)
+	cRegion := sizeT3(region)
+	return toError(C.clEnqueueWriteImage(q.clQueue, image.clBuffer, clBool(blocking), &cOrigin[0], &cRegion[0], C.size_t(rowPitch), C.size_t(slicePitch), unsafe.Pointer(&data[0]), 0, nil, nil))
 }

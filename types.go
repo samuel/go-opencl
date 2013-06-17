@@ -302,3 +302,18 @@ func (d ImageDescription) toCl() C.cl_image_desc {
 	}
 	return desc
 }
+
+func clBool(b bool) C.cl_bool {
+	if b {
+		return C.CL_TRUE
+	}
+	return C.CL_FALSE
+}
+
+func sizeT3(i3 [3]int) [3]C.size_t {
+	var val [3]C.size_t
+	val[0] = C.size_t(i3[0])
+	val[1] = C.size_t(i3[1])
+	val[2] = C.size_t(i3[2])
+	return val
+}
