@@ -1,5 +1,5 @@
-OpenCL bindings for Go
-======================
+OpenCL 1.2 bindings for Go
+==========================
 
 Documentation at <http://godoc.org/github.com/samuel/go-opencl>
 

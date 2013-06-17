@@ -115,7 +115,6 @@ func (ctx *Context) CreateBuffer(flags MemFlag, size int, dataPtr unsafe.Pointer
 	return buffer, nil
 }
 
-// OpenCL 1.2
 func (ctx *Context) CreateImage(flags MemFlag, imageFormat ImageFormat, imageDesc ImageDescription, data []byte) (*Buffer, error) {
 	format := imageFormat.toCl()
 	desc := imageDesc.toCl()
