@@ -26,7 +26,13 @@ func releaseCommandQueue(q *CommandQueue) {
 	}
 }
 
+// Blocks until all previously queued OpenCL commands in a command-queue are issued to the associated device and have completed.
 func (q *CommandQueue) Finish() error {
+	return toError(C.clFinish(q.clQueue))
+}
+
+// Issues all previously queued OpenCL commands in a command-queue to the device associated with the command-queue.
+func (q *CommandQueue) Flush() error {
 	return toError(C.clFinish(q.clQueue))
 }
 
@@ -61,6 +67,12 @@ func (q *CommandQueue) EnqueueReadBufferFloat32(buffer *Buffer, blocking bool, o
 	dataPtr := unsafe.Pointer(&data[0])
 	dataSize := int(unsafe.Sizeof(data[0])) * len(data)
 	return q.EnqueueReadBuffer(buffer, blocking, offset, dataSize, dataPtr, eventWaitList)
+}
+
+func (q *CommandQueue) EnqueueFillBuffer(buffer *Buffer, pattern unsafe.Pointer, patternSize, offset, size int, eventWaitList []Event) (Event, error) {
+	var event C.cl_event
+	err := toError(C.clEnqueueFillBuffer(q.clQueue, buffer.clBuffer, pattern, C.size_t(patternSize), C.size_t(offset), C.size_t(size), C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
+	return Event(event), err
 }
 
 // Enqueues a command to execute a kernel on a device.
