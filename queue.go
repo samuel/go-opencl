@@ -50,7 +50,7 @@ func (q *CommandQueue) EnqueueWriteBufferFloat32(buffer *Buffer, blocking bool, 
 	return q.EnqueueWriteBuffer(buffer, blocking, offset, dataSize, dataPtr, eventWaitList)
 }
 
-// TODO: event wait list
+// Enqueue commands to read from a buffer object to host memory.
 func (q *CommandQueue) EnqueueReadBuffer(buffer *Buffer, blocking bool, offset, dataSize int, dataPtr unsafe.Pointer, eventWaitList []Event) (Event, error) {
 	var event C.cl_event
 	err := toError(C.clEnqueueReadBuffer(q.clQueue, buffer.clBuffer, clBool(blocking), C.size_t(offset), C.size_t(dataSize), dataPtr, C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
@@ -63,7 +63,7 @@ func (q *CommandQueue) EnqueueReadBufferFloat32(buffer *Buffer, blocking bool, o
 	return q.EnqueueReadBuffer(buffer, blocking, offset, dataSize, dataPtr, eventWaitList)
 }
 
-// TODO: event wait list
+// Enqueues a command to execute a kernel on a device.
 func (q *CommandQueue) EnqueueNDRangeKernel(kernel *Kernel, globalWorkOffset, globalWorkSize, localWorkSize []int, eventWaitList []Event) (Event, error) {
 	workDim := len(globalWorkSize)
 	var globalWorkOffsetList []C.size_t
@@ -98,7 +98,7 @@ func (q *CommandQueue) EnqueueNDRangeKernel(kernel *Kernel, globalWorkOffset, gl
 	return Event(event), err
 }
 
-// TODO: event wait list
+// Enqueues a command to read from a 2D or 3D image object to host memory.
 func (q *CommandQueue) EnqueueReadImage(image *Buffer, blocking bool, origin, region [3]int, rowPitch, slicePitch int, data []byte, eventWaitList []Event) (Event, error) {
 	cOrigin := sizeT3(origin)
 	cRegion := sizeT3(region)
@@ -107,7 +107,7 @@ func (q *CommandQueue) EnqueueReadImage(image *Buffer, blocking bool, origin, re
 	return Event(event), err
 }
 
-// TODO: event wait list
+// Enqueues a command to write from a 2D or 3D image object to host memory.
 func (q *CommandQueue) EnqueueWriteImage(image *Buffer, blocking bool, origin, region [3]int, rowPitch, slicePitch int, data []byte, eventWaitList []Event) (Event, error) {
 	cOrigin := sizeT3(origin)
 	cRegion := sizeT3(region)
