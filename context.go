@@ -35,6 +35,17 @@ func releaseBuffer(b *Buffer) {
 	}
 }
 
+func (b *Buffer) validate() {
+	if b.clBuffer == nil {
+		panic("cl: buffer is nil")
+	}
+}
+
+// Call clReleaseMemObject on the buffer. Using the buffer after release will panic.
+func (b *Buffer) Release() {
+	releaseBuffer(b)
+}
+
 // TODO: properties
 func CreateContext(devices []*Device) (*Context, error) {
 	deviceIds := buildDeviceIdList(devices)
