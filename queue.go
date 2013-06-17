@@ -31,36 +31,40 @@ func (q *CommandQueue) Finish() error {
 }
 
 // Enqueues a command to copy a buffer object to another buffer object.
-// TODO: event wait list
-func (q *CommandQueue) EnqueueCopyBuffer(srcBuffer, dstBuffer *Buffer, srcOffset, dstOffset, byteCount int) error {
-	return toError(C.clEnqueueCopyBuffer(q.clQueue, srcBuffer.clBuffer, dstBuffer.clBuffer, C.size_t(srcOffset), C.size_t(dstOffset), C.size_t(byteCount), 0, nil, nil))
+func (q *CommandQueue) EnqueueCopyBuffer(srcBuffer, dstBuffer *Buffer, srcOffset, dstOffset, byteCount int, eventWaitList []Event) (Event, error) {
+	var event C.cl_event
+	err := toError(C.clEnqueueCopyBuffer(q.clQueue, srcBuffer.clBuffer, dstBuffer.clBuffer, C.size_t(srcOffset), C.size_t(dstOffset), C.size_t(byteCount), C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
+	return Event(event), err
 }
 
 // Enqueue commands to write to a buffer object from host memory.
-// TODO: event wait list
-func (q *CommandQueue) EnqueueWriteBuffer(buffer *Buffer, blocking bool, offset, dataSize int, dataPtr unsafe.Pointer) error {
-	return toError(C.clEnqueueWriteBuffer(q.clQueue, buffer.clBuffer, clBool(blocking), C.size_t(offset), C.size_t(dataSize), dataPtr, 0, nil, nil))
+func (q *CommandQueue) EnqueueWriteBuffer(buffer *Buffer, blocking bool, offset, dataSize int, dataPtr unsafe.Pointer, eventWaitList []Event) (Event, error) {
+	var event C.cl_event
+	err := toError(C.clEnqueueWriteBuffer(q.clQueue, buffer.clBuffer, clBool(blocking), C.size_t(offset), C.size_t(dataSize), dataPtr, C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
+	return Event(event), err
 }
 
-func (q *CommandQueue) EnqueueWriteBufferFloat32(buffer *Buffer, blocking bool, offset int, data []float32) error {
+func (q *CommandQueue) EnqueueWriteBufferFloat32(buffer *Buffer, blocking bool, offset int, data []float32, eventWaitList []Event) (Event, error) {
 	dataPtr := unsafe.Pointer(&data[0])
 	dataSize := int(unsafe.Sizeof(data[0])) * len(data)
-	return q.EnqueueWriteBuffer(buffer, blocking, offset, dataSize, dataPtr)
+	return q.EnqueueWriteBuffer(buffer, blocking, offset, dataSize, dataPtr, eventWaitList)
 }
 
 // TODO: event wait list
-func (q *CommandQueue) EnqueueReadBuffer(buffer *Buffer, blocking bool, offset, dataSize int, dataPtr unsafe.Pointer) error {
-	return toError(C.clEnqueueReadBuffer(q.clQueue, buffer.clBuffer, clBool(blocking), C.size_t(offset), C.size_t(dataSize), dataPtr, 0, nil, nil))
+func (q *CommandQueue) EnqueueReadBuffer(buffer *Buffer, blocking bool, offset, dataSize int, dataPtr unsafe.Pointer, eventWaitList []Event) (Event, error) {
+	var event C.cl_event
+	err := toError(C.clEnqueueReadBuffer(q.clQueue, buffer.clBuffer, clBool(blocking), C.size_t(offset), C.size_t(dataSize), dataPtr, C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
+	return Event(event), err
 }
 
-func (q *CommandQueue) EnqueueReadBufferFloat32(buffer *Buffer, blocking bool, offset int, data []float32) error {
+func (q *CommandQueue) EnqueueReadBufferFloat32(buffer *Buffer, blocking bool, offset int, data []float32, eventWaitList []Event) (Event, error) {
 	dataPtr := unsafe.Pointer(&data[0])
 	dataSize := int(unsafe.Sizeof(data[0])) * len(data)
-	return q.EnqueueReadBuffer(buffer, blocking, offset, dataSize, dataPtr)
+	return q.EnqueueReadBuffer(buffer, blocking, offset, dataSize, dataPtr, eventWaitList)
 }
 
 // TODO: event wait list
-func (q *CommandQueue) EnqueueNDRangeKernel(kernel *Kernel, globalWorkOffset, globalWorkSize, localWorkSize []int) error {
+func (q *CommandQueue) EnqueueNDRangeKernel(kernel *Kernel, globalWorkOffset, globalWorkSize, localWorkSize []int, eventWaitList []Event) (Event, error) {
 	workDim := len(globalWorkSize)
 	var globalWorkOffsetList []C.size_t
 	var globalWorkOffsetPtr *C.size_t
@@ -89,19 +93,25 @@ func (q *CommandQueue) EnqueueNDRangeKernel(kernel *Kernel, globalWorkOffset, gl
 		}
 		localWorkSizePtr = &localWorkSizeList[0]
 	}
-	return toError(C.clEnqueueNDRangeKernel(q.clQueue, kernel.clKernel, C.cl_uint(workDim), globalWorkOffsetPtr, globalWorkSizePtr, localWorkSizePtr, 0, nil, nil))
+	var event C.cl_event
+	err := toError(C.clEnqueueNDRangeKernel(q.clQueue, kernel.clKernel, C.cl_uint(workDim), globalWorkOffsetPtr, globalWorkSizePtr, localWorkSizePtr, C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
+	return Event(event), err
 }
 
 // TODO: event wait list
-func (q *CommandQueue) EnqueueReadImage(image *Buffer, blocking bool, origin, region [3]int, rowPitch, slicePitch int, data []byte) error {
+func (q *CommandQueue) EnqueueReadImage(image *Buffer, blocking bool, origin, region [3]int, rowPitch, slicePitch int, data []byte, eventWaitList []Event) (Event, error) {
 	cOrigin := sizeT3(origin)
 	cRegion := sizeT3(region)
-	return toError(C.clEnqueueReadImage(q.clQueue, image.clBuffer, clBool(blocking), &cOrigin[0], &cRegion[0], C.size_t(rowPitch), C.size_t(slicePitch), unsafe.Pointer(&data[0]), 0, nil, nil))
+	var event C.cl_event
+	err := toError(C.clEnqueueReadImage(q.clQueue, image.clBuffer, clBool(blocking), &cOrigin[0], &cRegion[0], C.size_t(rowPitch), C.size_t(slicePitch), unsafe.Pointer(&data[0]), C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
+	return Event(event), err
 }
 
 // TODO: event wait list
-func (q *CommandQueue) EnqueueWriteImage(image *Buffer, blocking bool, origin, region [3]int, rowPitch, slicePitch int, data []byte) error {
+func (q *CommandQueue) EnqueueWriteImage(image *Buffer, blocking bool, origin, region [3]int, rowPitch, slicePitch int, data []byte, eventWaitList []Event) (Event, error) {
 	cOrigin := sizeT3(origin)
 	cRegion := sizeT3(region)
-	return toError(C.clEnqueueWriteImage(q.clQueue, image.clBuffer, clBool(blocking), &cOrigin[0], &cRegion[0], C.size_t(rowPitch), C.size_t(slicePitch), unsafe.Pointer(&data[0]), 0, nil, nil))
+	var event C.cl_event
+	err := toError(C.clEnqueueWriteImage(q.clQueue, image.clBuffer, clBool(blocking), &cOrigin[0], &cRegion[0], C.size_t(rowPitch), C.size_t(slicePitch), unsafe.Pointer(&data[0]), C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
+	return Event(event), err
 }

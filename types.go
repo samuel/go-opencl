@@ -303,6 +303,8 @@ func (d ImageDescription) toCl() C.cl_image_desc {
 	return desc
 }
 
+type Event C.cl_event
+
 func clBool(b bool) C.cl_bool {
 	if b {
 		return C.CL_TRUE
@@ -316,4 +318,11 @@ func sizeT3(i3 [3]int) [3]C.size_t {
 	val[1] = C.size_t(i3[1])
 	val[2] = C.size_t(i3[2])
 	return val
+}
+
+func eventListPtr(el []Event) *C.cl_event {
+	if el == nil {
+		return nil
+	}
+	return (*C.cl_event)(&el[0])
 }

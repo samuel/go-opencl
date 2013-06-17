@@ -118,7 +118,7 @@ func TestHello(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateBuffer failed for output: %+v", err)
 	}
-	if err := queue.EnqueueWriteBufferFloat32(input, true, 0, data[:]); err != nil {
+	if _, err := queue.EnqueueWriteBufferFloat32(input, true, 0, data[:], nil); err != nil {
 		t.Fatalf("EnqueueWriteBufferFloat32 failed: %+v", err)
 	}
 	if err := kernel.SetKernelArgBuffer(0, input); err != nil {
@@ -142,7 +142,7 @@ func TestHello(t *testing.T) {
 	if d != 0 {
 		global += local - d
 	}
-	if err := queue.EnqueueNDRangeKernel(kernel, nil, []int{global}, []int{local}); err != nil {
+	if _, err := queue.EnqueueNDRangeKernel(kernel, nil, []int{global}, []int{local}, nil); err != nil {
 		t.Fatalf("EnqueueNDRangeKernel failed: %+v", err)
 	}
 
@@ -151,7 +151,7 @@ func TestHello(t *testing.T) {
 	}
 
 	results := make([]float32, len(data))
-	if err := queue.EnqueueReadBufferFloat32(output, true, 0, results); err != nil {
+	if _, err := queue.EnqueueReadBufferFloat32(output, true, 0, results, nil); err != nil {
 		t.Fatalf("EnqueueReadBufferFloat32 failed: %+v", err)
 	}
 
