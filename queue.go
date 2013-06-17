@@ -69,9 +69,17 @@ func (q *CommandQueue) EnqueueReadBufferFloat32(buffer *Buffer, blocking bool, o
 	return q.EnqueueReadBuffer(buffer, blocking, offset, dataSize, dataPtr, eventWaitList)
 }
 
+// Enqueues a command to fill a buffer object with a pattern of a given pattern size.
 func (q *CommandQueue) EnqueueFillBuffer(buffer *Buffer, pattern unsafe.Pointer, patternSize, offset, size int, eventWaitList []Event) (Event, error) {
 	var event C.cl_event
 	err := toError(C.clEnqueueFillBuffer(q.clQueue, buffer.clBuffer, pattern, C.size_t(patternSize), C.size_t(offset), C.size_t(size), C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
+	return Event(event), err
+}
+
+// A synchronization point that enqueues a barrier operation.
+func (q *CommandQueue) EnqueueBarrierWithWaitList(eventWaitList []Event) (Event, error) {
+	var event C.cl_event
+	err := toError(C.clEnqueueBarrierWithWaitList(q.clQueue, C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
 	return Event(event), err
 }
 
