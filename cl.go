@@ -1,5 +1,6 @@
 package cl
 
 // #include <OpenCL/opencl.h>
-// #cgo LDFLAGS: -framework OpenCL
+// #cgo linux pkg-config: OpenCL
+// #cgo darwin LDFLAGS: -framework OpenCL
 import "C"
