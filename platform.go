@@ -17,7 +17,7 @@ func GetPlatforms() ([]*Platform, error) {
 	var platformIds [maxPlatforms]C.cl_platform_id
 	var nPlatforms C.cl_uint
 	if err := C.clGetPlatformIDs(C.cl_uint(maxPlatforms), &platformIds[0], &nPlatforms); err != C.CL_SUCCESS {
-		return nil, CLError(err)
+		return nil, toError(err)
 	}
 	platforms := make([]*Platform, nPlatforms)
 	for i := 0; i < int(nPlatforms); i++ {
@@ -34,7 +34,7 @@ func (p *Platform) getInfoString(param C.cl_platform_info) (string, error) {
 	var strC [1024]C.char
 	var strN C.size_t
 	if err := C.clGetPlatformInfo(p.id, param, 1024, unsafe.Pointer(&strC), &strN); err != C.CL_SUCCESS {
-		return "", CLError(err)
+		return "", toError(err)
 	}
 	return C.GoStringN((*C.char)(unsafe.Pointer(&strC)), C.int(strN)), nil
 }

@@ -20,11 +20,7 @@ func releaseKernel(k *Kernel) {
 }
 
 func (k *Kernel) SetKernelArg(index, argSize int, arg unsafe.Pointer) error {
-	err := C.clSetKernelArg(k.clKernel, C.cl_uint(index), C.size_t(argSize), arg)
-	if err != C.CL_SUCCESS {
-		return CLError(err)
-	}
-	return nil
+	return toError(C.clSetKernelArg(k.clKernel, C.cl_uint(index), C.size_t(argSize), arg))
 }
 
 func (k *Kernel) SetKernelArgBuffer(index int, buffer *Buffer) error {
@@ -38,8 +34,5 @@ func (k *Kernel) SetKernelArgUint32(index int, val uint32) error {
 func (k *Kernel) WorkGroupSize(device *Device) (int, error) {
 	var size C.size_t
 	err := C.clGetKernelWorkGroupInfo(k.clKernel, device.id, C.CL_KERNEL_WORK_GROUP_SIZE, C.size_t(unsafe.Sizeof(size)), unsafe.Pointer(&size), nil)
-	if err != C.CL_SUCCESS {
-		return 0, CLError(err)
-	}
-	return int(size), nil
+	return int(size), toError(err)
 }

@@ -97,7 +97,7 @@ func GetDevices(platform *Platform, deviceType DeviceType) ([]*Device, error) {
 		platformId = platform.id
 	}
 	if err := C.clGetDeviceIDs(platformId, C.cl_device_type(deviceType), C.cl_uint(maxDeviceCount), &deviceIds[0], &numDevices); err != C.CL_SUCCESS {
-		return nil, CLError(int(err))
+		return nil, toError(err)
 	}
 	if numDevices > maxDeviceCount {
 		numDevices = maxDeviceCount
@@ -116,7 +116,7 @@ func (d *Device) getInfoString(param C.cl_device_info, panicOnError bool) (strin
 		if panicOnError {
 			panic("Should never fail")
 		}
-		return "", CLError(err)
+		return "", toError(err)
 	}
 	return C.GoStringN((*C.char)(unsafe.Pointer(&strC)), C.int(strN)), nil
 }
@@ -127,7 +127,7 @@ func (d *Device) getInfoUint(param C.cl_device_info, panicOnError bool) (uint, e
 		if panicOnError {
 			panic("Should never fail")
 		}
-		return 0, CLError(err)
+		return 0, toError(err)
 	}
 	return uint(val), nil
 }
@@ -138,7 +138,7 @@ func (d *Device) getInfoSize(param C.cl_device_info, panicOnError bool) (int, er
 		if panicOnError {
 			panic("Should never fail")
 		}
-		return 0, CLError(err)
+		return 0, toError(err)
 	}
 	return int(val), nil
 }
@@ -149,7 +149,7 @@ func (d *Device) getInfoBool(param C.cl_device_info, panicOnError bool) (bool, e
 		if panicOnError {
 			panic("Should never fail")
 		}
-		return false, CLError(err)
+		return false, toError(err)
 	}
 	return val == C.CL_TRUE, nil
 }

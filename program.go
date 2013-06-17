@@ -57,7 +57,7 @@ func (p *Program) CreateKernel(name string) (*Kernel, error) {
 	var err C.cl_int
 	clKernel := C.clCreateKernel(p.clProgram, cName, &err)
 	if err != C.CL_SUCCESS {
-		return nil, CLError(err)
+		return nil, toError(err)
 	}
 	kernel := &Kernel{clKernel: clKernel, name: name}
 	runtime.SetFinalizer(kernel, releaseKernel)
