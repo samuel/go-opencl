@@ -143,6 +143,17 @@ func (d *Device) getInfoSize(param C.cl_device_info, panicOnError bool) (int, er
 	return int(val), nil
 }
 
+func (d *Device) getInfoUlong(param C.cl_device_info, panicOnError bool) (int64, error) {
+	var val C.cl_ulong
+	if err := C.clGetDeviceInfo(d.id, param, C.size_t(unsafe.Sizeof(val)), unsafe.Pointer(&val), nil); err != C.CL_SUCCESS {
+		if panicOnError {
+			panic("Should never fail")
+		}
+		return 0, toError(err)
+	}
+	return int64(val), nil
+}
+
 func (d *Device) getInfoBool(param C.cl_device_info, panicOnError bool) (bool, error) {
 	var val C.cl_bool
 	if err := C.clGetDeviceInfo(d.id, param, C.size_t(unsafe.Sizeof(val)), unsafe.Pointer(&val), nil); err != C.CL_SUCCESS {
@@ -292,6 +303,34 @@ func (d *Device) MaxParameterSize() int {
 func (d *Device) MaxWorkGroupSize() int {
 	val, _ := d.getInfoSize(C.CL_DEVICE_MAX_WORK_GROUP_SIZE, true)
 	return int(val)
+}
+
+// Size of local memory arena in bytes. The minimum value is 32 KB for
+// devices that are not of type CL_DEVICE_TYPE_CUSTOM.
+func (d *Device) LocalMemSize() int64 {
+	val, _ := d.getInfoUlong(C.CL_DEVICE_LOCAL_MEM_SIZE, true)
+	return val
+}
+
+// Max size in bytes of a constant buffer allocation. The minimum value is
+// 64 KB for devices that are not of type CL_DEVICE_TYPE_CUSTOM.
+func (d *Device) MaxConstantBufferSize() int64 {
+	val, _ := d.getInfoUlong(C.CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, true)
+	return val
+}
+
+// Max size of memory object allocation in bytes. The minimum value is max
+// (1/4th of CL_DEVICE_GLOBAL_MEM_SIZE, 128*1024*1024) for devices that are
+// not of type CL_DEVICE_TYPE_CUSTOM.
+func (d *Device) MaxMemAllocSize() int64 {
+	val, _ := d.getInfoUlong(C.CL_DEVICE_MAX_MEM_ALLOC_SIZE, true)
+	return val
+}
+
+// Size of global device memory in bytes.
+func (d *Device) GlobalMemSize() int64 {
+	val, _ := d.getInfoUlong(C.CL_DEVICE_GLOBAL_MEM_SIZE, true)
+	return val
 }
 
 func (d *Device) Available() bool {
