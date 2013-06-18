@@ -109,6 +109,13 @@ func GetDevices(platform *Platform, deviceType DeviceType) ([]*Device, error) {
 	return devices, nil
 }
 
+func (d *Device) nullableId() C.cl_device_id {
+	if d == nil {
+		return nil
+	}
+	return d.id
+}
+
 func (d *Device) getInfoString(param C.cl_device_info, panicOnError bool) (string, error) {
 	var strC [1024]C.char
 	var strN C.size_t

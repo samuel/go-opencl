@@ -31,8 +31,14 @@ func (k *Kernel) SetKernelArgUint32(index int, val uint32) error {
 	return k.SetKernelArg(index, int(unsafe.Sizeof(val)), unsafe.Pointer(&val))
 }
 
+func (k *Kernel) PreferredWorkGroupSizeMultiple(device *Device) (int, error) {
+	var size C.size_t
+	err := C.clGetKernelWorkGroupInfo(k.clKernel, device.nullableId(), C.CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, C.size_t(unsafe.Sizeof(size)), unsafe.Pointer(&size), nil)
+	return int(size), toError(err)
+}
+
 func (k *Kernel) WorkGroupSize(device *Device) (int, error) {
 	var size C.size_t
-	err := C.clGetKernelWorkGroupInfo(k.clKernel, device.id, C.CL_KERNEL_WORK_GROUP_SIZE, C.size_t(unsafe.Sizeof(size)), unsafe.Pointer(&size), nil)
+	err := C.clGetKernelWorkGroupInfo(k.clKernel, device.nullableId(), C.CL_KERNEL_WORK_GROUP_SIZE, C.size_t(unsafe.Sizeof(size)), unsafe.Pointer(&size), nil)
 	return int(size), toError(err)
 }
