@@ -145,6 +145,28 @@ func toError(code C.cl_int) error {
 	return ErrOther(code)
 }
 
+type LocalMemType int
+
+const (
+	LocalMemTypeNone   LocalMemType = C.CL_NONE
+	LocalMemTypeGlobal LocalMemType = C.CL_GLOBAL
+	LocalMemTypeLocal  LocalMemType = C.CL_LOCAL
+)
+
+var localMemTypeMap = map[LocalMemType]string{
+	LocalMemTypeNone:   "None",
+	LocalMemTypeGlobal: "Global",
+	LocalMemTypeLocal:  "Local",
+}
+
+func (t LocalMemType) String() string {
+	name := localMemTypeMap[t]
+	if name == "" {
+		name = "Unknown"
+	}
+	return name
+}
+
 type MemFlag int
 
 const (

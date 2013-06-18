@@ -74,6 +74,7 @@ func TestHello(t *testing.T) {
 		t.Logf("  Max Constant Buffer Size: %d KB", d.MaxConstantBufferSize()/1024)
 		t.Logf("  Max Mem Alloc Size: %d KB", d.MaxMemAllocSize()/1024)
 		t.Logf("  Local Mem Size Size: %d KB", d.LocalMemSize()/1024)
+		t.Logf("  Local Mem Type: %s", d.LocalMemType())
 		t.Logf("  Memory Base Address Alignment: %d", d.MemBaseAddrAlign())
 		t.Logf("  Image2D Max Dimensions: %d x %d", d.Image2DMaxWidth(), d.Image2DMaxHeight())
 		t.Logf("  Available: %+v", d.Available())

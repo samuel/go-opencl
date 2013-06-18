@@ -388,3 +388,14 @@ func (d *Device) HalfFPConfig() FPConfig {
 	}
 	return FPConfig(fpConfig)
 }
+
+// Type of local memory supported. This can be set to CL_LOCAL implying dedicated
+// local memory storage such as SRAM, or CL_GLOBAL. For custom devices, CL_NONE
+// can also be returned indicating no local memory support.
+func (d *Device) LocalMemType() LocalMemType {
+	var memType C.cl_device_local_mem_type
+	if err := C.clGetDeviceInfo(d.id, C.CL_DEVICE_LOCAL_MEM_TYPE, C.size_t(unsafe.Sizeof(memType)), unsafe.Pointer(&memType), nil); err != C.CL_SUCCESS {
+		return LocalMemType(C.CL_NONE)
+	}
+	return LocalMemType(memType)
+}
