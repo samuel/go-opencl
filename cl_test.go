@@ -81,6 +81,7 @@ func TestHello(t *testing.T) {
 		t.Logf("  Memory Base Address Alignment: %d", d.MemBaseAddrAlign())
 		t.Logf("  OpenCL C Version: %s", d.OpenCLCVersion())
 		t.Logf("  Profile: %s", d.Profile())
+		t.Logf("  Profiling Timer Resolution: %d", d.ProfilingTimerResolution())
 		t.Logf("  Vendor: %s", d.Vendor())
 		t.Logf("  Version: %s", d.Version())
 	}

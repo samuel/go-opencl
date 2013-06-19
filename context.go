@@ -16,9 +16,9 @@ type Context struct {
 	devices   []*Device
 }
 
-type Buffer struct {
-	clBuffer C.cl_mem
-	size     int
+type MemObject struct {
+	clMem C.cl_mem
+	size  int
 }
 
 func releaseContext(c *Context) {
@@ -28,22 +28,28 @@ func releaseContext(c *Context) {
 	}
 }
 
-func releaseBuffer(b *Buffer) {
-	if b.clBuffer != nil {
-		C.clReleaseMemObject(b.clBuffer)
-		b.clBuffer = nil
+func releaseMemObject(b *MemObject) {
+	if b.clMem != nil {
+		C.clReleaseMemObject(b.clMem)
+		b.clMem = nil
 	}
 }
 
-func (b *Buffer) validate() {
-	if b.clBuffer == nil {
-		panic("cl: buffer is nil")
+func newMemObject(mo C.cl_mem, size int) *MemObject {
+	memObject := &MemObject{clMem: mo, size: size}
+	runtime.SetFinalizer(memObject, releaseMemObject)
+	return memObject
+}
+
+func (b *MemObject) validate() {
+	if b.clMem == nil {
+		panic("cl: MemObject is nil")
 	}
 }
 
 // Call clReleaseMemObject on the buffer. Using the buffer after release will panic.
-func (b *Buffer) Release() {
-	releaseBuffer(b)
+func (b *MemObject) Release() {
+	releaseMemObject(b)
 }
 
 // TODO: properties
@@ -112,7 +118,7 @@ func (ctx *Context) CreateProgramWithSource(sources []string) (*Program, error) 
 	return program, nil
 }
 
-func (ctx *Context) CreateBuffer(flags MemFlag, size int, dataPtr unsafe.Pointer) (*Buffer, error) {
+func (ctx *Context) CreateBuffer(flags MemFlag, size int, dataPtr unsafe.Pointer) (*MemObject, error) {
 	var err C.cl_int
 	clBuffer := C.clCreateBuffer(ctx.clContext, C.cl_mem_flags(flags), C.size_t(size), dataPtr, &err)
 	if err != C.CL_SUCCESS {
@@ -121,12 +127,10 @@ func (ctx *Context) CreateBuffer(flags MemFlag, size int, dataPtr unsafe.Pointer
 	if clBuffer == nil {
 		return nil, ErrUnknown
 	}
-	buffer := &Buffer{clBuffer: clBuffer, size: size}
-	runtime.SetFinalizer(buffer, releaseBuffer)
-	return buffer, nil
+	return newMemObject(clBuffer, size), nil
 }
 
-func (ctx *Context) CreateImage(flags MemFlag, imageFormat ImageFormat, imageDesc ImageDescription, data []byte) (*Buffer, error) {
+func (ctx *Context) CreateImage(flags MemFlag, imageFormat ImageFormat, imageDesc ImageDescription, data []byte) (*MemObject, error) {
 	format := imageFormat.toCl()
 	desc := imageDesc.toCl()
 	var dataPtr unsafe.Pointer
@@ -141,12 +145,10 @@ func (ctx *Context) CreateImage(flags MemFlag, imageFormat ImageFormat, imageDes
 	if clBuffer == nil {
 		return nil, ErrUnknown
 	}
-	buffer := &Buffer{clBuffer: clBuffer, size: -1}
-	runtime.SetFinalizer(buffer, releaseBuffer)
-	return buffer, nil
+	return newMemObject(clBuffer, len(data)), nil
 }
 
-func (ctx *Context) CreateImageSimple(flags MemFlag, width, height int, channelOrder ChannelOrder, channelDataType ChannelDataType, data []byte) (*Buffer, error) {
+func (ctx *Context) CreateImageSimple(flags MemFlag, width, height int, channelOrder ChannelOrder, channelDataType ChannelDataType, data []byte) (*MemObject, error) {
 	format := ImageFormat{channelOrder, channelDataType}
 	desc := ImageDescription{
 		Type:   MemObjectTypeImage2D,
@@ -156,7 +158,7 @@ func (ctx *Context) CreateImageSimple(flags MemFlag, width, height int, channelO
 	return ctx.CreateImage(flags, format, desc, data)
 }
 
-func (ctx *Context) CreateImageFromImage(flags MemFlag, img image.Image) (*Buffer, error) {
+func (ctx *Context) CreateImageFromImage(flags MemFlag, img image.Image) (*MemObject, error) {
 	switch m := img.(type) {
 	case *image.Gray:
 		format := ImageFormat{ChannelOrderIntensity, ChannelDataTypeUNormInt8}
@@ -196,3 +198,6 @@ func (ctx *Context) CreateImageFromImage(flags MemFlag, img image.Image) (*Buffe
 	}
 	return ctx.CreateImageSimple(flags, w, h, ChannelOrderRGBA, ChannelDataTypeUNormInt8, data)
 }
+
+// http://www.khronos.org/registry/cl/sdk/1.2/docs/man/xhtml/clCreateSubBuffer.html
+// func (memObject *MemObject) CreateSubBuffer(flags MemFlag, bufferCreateType BufferCreateType, )

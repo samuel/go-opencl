@@ -6,9 +6,14 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"runtime"
+	"unsafe"
 )
 
-var ErrUnknown = errors.New("cl: unknown error")
+var (
+	ErrUnknown = errors.New("cl: unknown error") // Generally an unexpected result from an OpenCL function (e.g. CL_SUCCESS but null pointer)
+)
 
 type ErrOther int
 
@@ -193,6 +198,25 @@ const (
 	MemObjectTypeImage1DBuffer MemObjectType = C.CL_MEM_OBJECT_IMAGE1D_BUFFER
 )
 
+type MapFlag int
+
+const (
+	// This flag specifies that the region being mapped in the memory object is being mapped for reading.
+	MapFlagRead  MapFlag = C.CL_MAP_READ
+	MapFlagWrite MapFlag = C.CL_MAP_WRITE
+	// This flag specifies that the region being mapped in the memory object is being mapped for writing.
+	//
+	// The contents of the region being mapped are to be discarded. This is typically the case when the
+	// region being mapped is overwritten by the host. This flag allows the implementation to no longer
+	// guarantee that the pointer returned by clEnqueueMapBuffer or clEnqueueMapImage contains the
+	// latest bits in the region being mapped which can be a significant performance enhancement.
+	MapFlagWriteInvalidateRegion MapFlag = C.CL_MAP_WRITE_INVALIDATE_REGION
+)
+
+func (mf MapFlag) toCl() C.cl_map_flags {
+	return C.cl_map_flags(mf)
+}
+
 type ChannelOrder int
 
 const (
@@ -213,6 +237,19 @@ const (
 	ChannelOrderDepthStencil ChannelOrder = C.CL_DEPTH_STENCIL
 )
 
+// Extension: cl_APPLE_fixed_alpha_channel_orders
+//
+// These selectors may be passed to clCreateImage2D() in the cl_image_format.image_channel_order field.
+// They are like CL_BGRA and CL_ARGB except that the alpha channel to be ignored.  On calls to read_imagef,
+// the alpha will be 0xff (1.0f) if the sample falls in the image and 0 if it does not fall in the image.
+// On calls to write_imagef, the alpha value is ignored and 0xff (1.0f) is written. These formats are
+// currently only available for the CL_UNORM_INT8 cl_channel_type. They are intended to support legacy
+// image formats.
+const (
+	ChannelOrder1RGBApple ChannelOrder = C.CL_1RGB_APPLE // Introduced in MacOS X.7.
+	ChannelOrderBGR1Apple ChannelOrder = C.CL_BGR1_APPLE // Introduced in MacOS X.7.
+)
+
 var channelOrderNameMap = map[ChannelOrder]string{
 	ChannelOrderR:            "R",
 	ChannelOrderA:            "A",
@@ -229,12 +266,15 @@ var channelOrderNameMap = map[ChannelOrder]string{
 	ChannelOrderRGBx:         "RGBx",
 	ChannelOrderDepth:        "Depth",
 	ChannelOrderDepthStencil: "DepthStencil",
+
+	ChannelOrder1RGBApple: "1RGBApple",
+	ChannelOrderBGR1Apple: "RGB1Apple",
 }
 
 func (co ChannelOrder) String() string {
 	name := channelOrderNameMap[co]
 	if name == "" {
-		name = "Unknown"
+		name = fmt.Sprintf("Unknown(%x)", int(co))
 	}
 	return name
 }
@@ -260,6 +300,24 @@ const (
 	ChannelDataTypeUNormInt24     ChannelDataType = C.CL_UNORM_INT24
 )
 
+// Extension: cl_APPLE_biased_fixed_point_image_formats
+//
+// This selector may be passed to clCreateImage2D() in the cl_image_format.image_channel_data_type field.
+// It defines a biased signed 1.14 fixed point storage format, with range [-1, 3). The conversion from
+// float to this fixed point format is defined as follows:
+//
+//      ushort float_to_sfixed14( float x ){
+//          int i = convert_int_sat_rte( x * 0x1.0p14f );         // scale [-1, 3.0) to [-16384, 3*16384), round to nearest integer
+//          i = add_sat( i, 0x4000 );                             // apply bias, to convert to [0, 65535) range
+//          return convert_ushort_sat(i);                         // clamp to destination size
+//      }
+//
+// The inverse conversion is the reverse process. The formats are currently only available on the CPU with
+// the CL_RGBA channel layout.
+const (
+	ChannelDataTypeSFixed14Apple = C.CL_SFIXED14_APPLE // Introduced in MacOS X.7.
+)
+
 var channelDataTypeNameMap = map[ChannelDataType]string{
 	ChannelDataTypeSNormInt8:      "SNormInt8",
 	ChannelDataTypeSNormInt16:     "SNormInt16",
@@ -277,12 +335,14 @@ var channelDataTypeNameMap = map[ChannelDataType]string{
 	ChannelDataTypeHalfFloat:      "HalfFloat",
 	ChannelDataTypeFloat:          "Float",
 	ChannelDataTypeUNormInt24:     "UNormInt24",
+
+	ChannelDataTypeSFixed14Apple: "SFixed14Apple",
 }
 
 func (ct ChannelDataType) String() string {
 	name := channelDataTypeNameMap[ct]
 	if name == "" {
-		name = "Unknown"
+		name = fmt.Sprintf("Unknown(%x)", int(ct))
 	}
 	return name
 }
@@ -304,7 +364,7 @@ type ImageDescription struct {
 	Width, Height, Depth            int
 	ArraySize, RowPitch, SlicePitch int
 	NumMipLevels, NumSamples        int
-	Buffer                          *Buffer
+	Buffer                          *MemObject
 }
 
 func (d ImageDescription) toCl() C.cl_image_desc {
@@ -320,12 +380,74 @@ func (d ImageDescription) toCl() C.cl_image_desc {
 	desc.num_samples = C.cl_uint(d.NumSamples)
 	desc.buffer = nil
 	if d.Buffer != nil {
-		desc.buffer = d.Buffer.clBuffer
+		desc.buffer = d.Buffer.clMem
 	}
 	return desc
 }
 
-type Event C.cl_event
+type ProfilingInfo int
+
+const (
+	// A 64-bit value that describes the current device time counter in
+	// nanoseconds when the command identified by event is enqueued in
+	// a command-queue by the host.
+	ProfilingInfoCommandQueued ProfilingInfo = C.CL_PROFILING_COMMAND_QUEUED
+	// A 64-bit value that describes the current device time counter in
+	// nanoseconds when the command identified by event that has been
+	// enqueued is submitted by the host to the device associated with the command-queue.
+	ProfilingInfoCommandSubmit ProfilingInfo = C.CL_PROFILING_COMMAND_SUBMIT
+	// A 64-bit value that describes the current device time counter in
+	// nanoseconds when the command identified by event starts execution on the device.
+	ProfilingInfoCommandStart ProfilingInfo = C.CL_PROFILING_COMMAND_START
+	// A 64-bit value that describes the current device time counter in
+	// nanoseconds when the command identified by event has finished
+	// execution on the device.
+	ProfilingInfoCommandEnd ProfilingInfo = C.CL_PROFILING_COMMAND_END
+)
+
+type Event struct {
+	clEvent C.cl_event
+}
+
+func releaseEvent(ev *Event) {
+	if ev.clEvent != nil {
+		C.clReleaseEvent(ev.clEvent)
+		ev.clEvent = nil
+	}
+}
+
+func (e *Event) Release() {
+	releaseEvent(e)
+}
+
+func (e *Event) GetEventProfilingInfo(paramName ProfilingInfo) (int64, error) {
+	var paramValue C.cl_ulong
+	if err := C.clGetEventProfilingInfo(e.clEvent, C.cl_profiling_info(paramName), C.size_t(unsafe.Sizeof(paramValue)), unsafe.Pointer(&paramValue), nil); err != C.CL_SUCCESS {
+		return 0, toError(err)
+	}
+	return int64(paramValue), nil
+}
+
+func WaitForEvents(events []*Event) error {
+	return toError(C.clWaitForEvents(C.cl_uint(len(events)), eventListPtr(events)))
+}
+
+func newEvent(clEvent C.cl_event) *Event {
+	ev := &Event{clEvent: clEvent}
+	runtime.SetFinalizer(ev, releaseEvent)
+	return ev
+}
+
+func eventListPtr(el []*Event) *C.cl_event {
+	if el == nil {
+		return nil
+	}
+	elist := make([]C.cl_event, len(el))
+	for i, e := range el {
+		elist[i] = e.clEvent
+	}
+	return (*C.cl_event)(&elist[0])
+}
 
 func clBool(b bool) C.cl_bool {
 	if b {
@@ -342,9 +464,34 @@ func sizeT3(i3 [3]int) [3]C.size_t {
 	return val
 }
 
-func eventListPtr(el []Event) *C.cl_event {
-	if el == nil {
-		return nil
-	}
-	return (*C.cl_event)(&el[0])
+type MappedMemObject struct {
+	ptr        unsafe.Pointer
+	size       int
+	rowPitch   int
+	slicePitch int
+}
+
+func (mb *MappedMemObject) ByteSlice() []byte {
+	var byteSlice []byte
+	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&byteSlice))
+	sliceHeader.Cap = mb.size
+	sliceHeader.Len = mb.size
+	sliceHeader.Data = uintptr(mb.ptr)
+	return byteSlice
+}
+
+func (mb *MappedMemObject) Ptr() unsafe.Pointer {
+	return mb.ptr
+}
+
+func (mb *MappedMemObject) Size() int {
+	return mb.size
+}
+
+func (mb *MappedMemObject) RowPitch() int {
+	return mb.rowPitch
+}
+
+func (mb *MappedMemObject) SlicePitch() int {
+	return mb.slicePitch
 }

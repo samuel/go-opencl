@@ -9,8 +9,6 @@ import (
 	"unsafe"
 )
 
-const errorBufferSize = 2048
-
 type BuildError string
 
 func (e BuildError) Error() string {
@@ -43,10 +41,22 @@ func (p *Program) BuildProgram(devices []*Device, options string) error {
 		deviceListPtr = &deviceList[0]
 	}
 	if err := C.clBuildProgram(p.clProgram, numDevices, deviceListPtr, cOptions, nil, nil); err != C.CL_SUCCESS {
-		var buffer [errorBufferSize]C.char
+		buffer := make([]byte, 4096)
 		var bLen C.size_t
-		C.clGetProgramBuildInfo(p.clProgram, p.devices[0].id, C.CL_PROGRAM_BUILD_LOG, errorBufferSize, unsafe.Pointer(&buffer), &bLen)
-		return BuildError(C.GoStringN((*C.char)(unsafe.Pointer(&buffer)), C.int(bLen)))
+		var err C.cl_int
+		for i := 2; i >= 0; i-- {
+			err = C.clGetProgramBuildInfo(p.clProgram, p.devices[0].id, C.CL_PROGRAM_BUILD_LOG, C.size_t(len(buffer)), unsafe.Pointer(&buffer[0]), &bLen)
+			if err == C.CL_INVALID_VALUE && i > 0 && bLen < 1024*1024 {
+				// INVALID_VALUE probably means our buffer isn't large enough
+				buffer = make([]byte, bLen)
+			} else {
+				break
+			}
+		}
+		if err != C.CL_SUCCESS {
+			return toError(err)
+		}
+		return BuildError(string(buffer[:bLen]))
 	}
 	return nil
 }

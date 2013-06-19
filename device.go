@@ -312,6 +312,12 @@ func (d *Device) MaxWorkGroupSize() int {
 	return int(val)
 }
 
+// Describes the resolution of device timer. This is measured in nanoseconds.
+func (d *Device) ProfilingTimerResolution() int {
+	val, _ := d.getInfoSize(C.CL_DEVICE_PROFILING_TIMER_RESOLUTION, true)
+	return int(val)
+}
+
 // Size of local memory arena in bytes. The minimum value is 32 KB for
 // devices that are not of type CL_DEVICE_TYPE_CUSTOM.
 func (d *Device) LocalMemSize() int64 {
