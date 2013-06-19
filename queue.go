@@ -131,6 +131,13 @@ func (q *CommandQueue) EnqueueBarrierWithWaitList(eventWaitList []*Event) (*Even
 	return newEvent(event), err
 }
 
+// Enqueues a marker command which waits for either a list of events to complete, or all previously enqueued commands to complete.
+func (q *CommandQueue) EnqueueMarkerWithWaitList(eventWaitList []*Event) (*Event, error) {
+	var event C.cl_event
+	err := toError(C.clEnqueueMarkerWithWaitList(q.clQueue, C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
+	return newEvent(event), err
+}
+
 // Enqueues a command to execute a kernel on a device.
 func (q *CommandQueue) EnqueueNDRangeKernel(kernel *Kernel, globalWorkOffset, globalWorkSize, localWorkSize []int, eventWaitList []*Event) (*Event, error) {
 	workDim := len(globalWorkSize)

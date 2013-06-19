@@ -192,5 +192,14 @@ func (ctx *Context) CreateImageFromImage(flags MemFlag, img image.Image) (*MemOb
 	return ctx.CreateImageSimple(flags, w, h, ChannelOrderRGBA, ChannelDataTypeUNormInt8, data)
 }
 
+func (ctx *Context) CreateUserEvent() (*Event, error) {
+	var err C.cl_int
+	clEvent := C.clCreateUserEvent(ctx.clContext, &err)
+	if err != C.CL_SUCCESS {
+		return nil, toError(err)
+	}
+	return newEvent(clEvent), nil
+}
+
 // http://www.khronos.org/registry/cl/sdk/1.2/docs/man/xhtml/clCreateSubBuffer.html
 // func (memObject *MemObject) CreateSubBuffer(flags MemFlag, bufferCreateType BufferCreateType, )

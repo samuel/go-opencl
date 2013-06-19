@@ -447,6 +447,15 @@ const (
 	ProfilingInfoCommandEnd ProfilingInfo = C.CL_PROFILING_COMMAND_END
 )
 
+type CommmandExecStatus int
+
+const (
+	CommmandExecStatusComplete  CommmandExecStatus = C.CL_COMPLETE
+	CommmandExecStatusRunning   CommmandExecStatus = C.CL_RUNNING
+	CommmandExecStatusSubmitted CommmandExecStatus = C.CL_SUBMITTED
+	CommmandExecStatusQueued    CommmandExecStatus = C.CL_QUEUED
+)
+
 type Event struct {
 	clEvent C.cl_event
 }
@@ -468,6 +477,17 @@ func (e *Event) GetEventProfilingInfo(paramName ProfilingInfo) (int64, error) {
 		return 0, toError(err)
 	}
 	return int64(paramValue), nil
+}
+
+// Sets the execution status of a user event object.
+//
+// `status` specifies the new execution status to be set and
+// can be CL_COMPLETE or a negative integer value to indicate
+// an error. A negative integer value causes all enqueued commands
+// that wait on this user event to be terminated. clSetUserEventStatus
+// can only be called once to change the execution status of event.
+func (e *Event) SetUserEventStatus(status int) error {
+	return toError(C.clSetUserEventStatus(e.clEvent, C.cl_int(status)))
 }
 
 func WaitForEvents(events []*Event) error {
