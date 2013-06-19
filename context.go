@@ -41,13 +41,6 @@ func newMemObject(mo C.cl_mem, size int) *MemObject {
 	return memObject
 }
 
-func (b *MemObject) validate() {
-	if b.clMem == nil {
-		panic("cl: MemObject is nil")
-	}
-}
-
-// Call clReleaseMemObject on the buffer. Using the buffer after release will panic.
 func (b *MemObject) Release() {
 	releaseMemObject(b)
 }

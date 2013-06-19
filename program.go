@@ -27,6 +27,10 @@ func releaseProgram(p *Program) {
 	}
 }
 
+func (p *Program) Release() {
+	releaseProgram(p)
+}
+
 func (p *Program) BuildProgram(devices []*Device, options string) error {
 	var cOptions *C.char
 	if options != "" {

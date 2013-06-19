@@ -19,6 +19,10 @@ func releaseKernel(k *Kernel) {
 	}
 }
 
+func (k *Kernel) Release() {
+	releaseKernel(k)
+}
+
 func (k *Kernel) SetKernelArg(index, argSize int, arg unsafe.Pointer) error {
 	return toError(C.clSetKernelArg(k.clKernel, C.cl_uint(index), C.size_t(argSize), arg))
 }
