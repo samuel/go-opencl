@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"strings"
 	"unsafe"
 )
 
@@ -170,6 +171,47 @@ func (t LocalMemType) String() string {
 		name = "Unknown"
 	}
 	return name
+}
+
+type ExecCapability int
+
+const (
+	ExecCapabilityKernel       ExecCapability = C.CL_EXEC_KERNEL        // The OpenCL device can execute OpenCL kernels.
+	ExecCapabilityNativeKernel ExecCapability = C.CL_EXEC_NATIVE_KERNEL // The OpenCL device can execute native kernels.
+)
+
+func (ec ExecCapability) String() string {
+	var parts []string
+	if ec&ExecCapabilityKernel != 0 {
+		parts = append(parts, "Kernel")
+	}
+	if ec&ExecCapabilityNativeKernel != 0 {
+		parts = append(parts, "NativeKernel")
+	}
+	if parts == nil {
+		return ""
+	}
+	return strings.Join(parts, "|")
+}
+
+type MemCacheType int
+
+const (
+	MemCacheTypeNone           MemCacheType = C.CL_NONE
+	MemCacheTypeReadOnlyCache  MemCacheType = C.CL_READ_ONLY_CACHE
+	MemCacheTypeReadWriteCache MemCacheType = C.CL_READ_WRITE_CACHE
+)
+
+func (ct MemCacheType) String() string {
+	switch ct {
+	case MemCacheTypeNone:
+		return "None"
+	case MemCacheTypeReadOnlyCache:
+		return "ReadOnly"
+	case MemCacheTypeReadWriteCache:
+		return "ReadWrite"
+	}
+	return fmt.Sprintf("Unknown(%x)", ct)
 }
 
 type MemFlag int

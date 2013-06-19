@@ -282,6 +282,41 @@ func (d *Device) MemBaseAddrAlign() int {
 	return int(val)
 }
 
+func (d *Device) NativeVectorWidthChar() int {
+	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, true)
+	return int(val)
+}
+
+func (d *Device) NativeVectorWidthShort() int {
+	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_SHORT, true)
+	return int(val)
+}
+
+func (d *Device) NativeVectorWidthInt() int {
+	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_INT, true)
+	return int(val)
+}
+
+func (d *Device) NativeVectorWidthLong() int {
+	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_LONG, true)
+	return int(val)
+}
+
+func (d *Device) NativeVectorWidthFloat() int {
+	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT, true)
+	return int(val)
+}
+
+func (d *Device) NativeVectorWidthDouble() int {
+	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE, true)
+	return int(val)
+}
+
+func (d *Device) NativeVectorWidthHalf() int {
+	val, _ := d.getInfoUint(C.CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF, true)
+	return int(val)
+}
+
 // Max height of 2D image in pixels. The minimum value is 8192
 // if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
 func (d *Device) Image2DMaxHeight() int {
@@ -293,6 +328,36 @@ func (d *Device) Image2DMaxHeight() int {
 // pixels. The minimum value is 8192 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
 func (d *Device) Image2DMaxWidth() int {
 	val, _ := d.getInfoSize(C.CL_DEVICE_IMAGE2D_MAX_WIDTH, true)
+	return int(val)
+}
+
+// Max depth of 3D image in pixels. The minimum value is 2048 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
+func (d *Device) Image3DMaxDepth() int {
+	val, _ := d.getInfoSize(C.CL_DEVICE_IMAGE3D_MAX_DEPTH, true)
+	return int(val)
+}
+
+// Max height of 3D image in pixels. The minimum value is 2048 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
+func (d *Device) Image3DMaxHeight() int {
+	val, _ := d.getInfoSize(C.CL_DEVICE_IMAGE3D_MAX_HEIGHT, true)
+	return int(val)
+}
+
+// Max width of 3D image in pixels. The minimum value is 2048 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
+func (d *Device) Image3DMaxWidth() int {
+	val, _ := d.getInfoSize(C.CL_DEVICE_IMAGE3D_MAX_WIDTH, true)
+	return int(val)
+}
+
+// Max number of pixels for a 1D image created from a buffer object. The minimum value is 65536 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
+func (d *Device) ImageMaxBufferSize() int {
+	val, _ := d.getInfoSize(C.CL_DEVICE_IMAGE_MAX_BUFFER_SIZE, true)
+	return int(val)
+}
+
+// Max number of images in a 1D or 2D image array. The minimum value is 2048 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE
+func (d *Device) ImageMaxArraySize() int {
+	val, _ := d.getInfoSize(C.CL_DEVICE_IMAGE_MAX_ARRAY_SIZE, true)
 	return int(val)
 }
 
@@ -356,11 +421,20 @@ func (d *Device) CompilerAvailable() bool {
 	return val
 }
 
+// Is CL_FALSE if the implementation does not have a linker available. Is CL_TRUE if the linker is available. This can be CL_FALSE for the embedded platform profile only. This must be CL_TRUE if CL_DEVICE_COMPILER_AVAILABLE is CL_TRUE
+func (d *Device) LinkerAvailable() bool {
+	val, _ := d.getInfoBool(C.CL_DEVICE_LINKER_AVAILABLE, true)
+	return val
+}
+
 func (d *Device) EndianLittle() bool {
 	val, _ := d.getInfoBool(C.CL_DEVICE_ENDIAN_LITTLE, true)
 	return val
 }
 
+// Is CL_TRUE if the device implements error correction for all
+// accesses to compute device memory (global and constant). Is
+// CL_FALSE if the device does not implement such error correction.
 func (d *Device) ErrorCorrectionSupport() bool {
 	val, _ := d.getInfoBool(C.CL_DEVICE_ERROR_CORRECTION_SUPPORT, true)
 	return val
@@ -411,4 +485,50 @@ func (d *Device) LocalMemType() LocalMemType {
 		return LocalMemType(C.CL_NONE)
 	}
 	return LocalMemType(memType)
+}
+
+// Describes the execution capabilities of the device. The mandated minimum capability is CL_EXEC_KERNEL.
+func (d *Device) ExecutionCapabilities() ExecCapability {
+	var execCap C.cl_device_exec_capabilities
+	if err := C.clGetDeviceInfo(d.id, C.CL_DEVICE_EXECUTION_CAPABILITIES, C.size_t(unsafe.Sizeof(execCap)), unsafe.Pointer(&execCap), nil); err != C.CL_SUCCESS {
+		panic("Failed to get execution capabilities")
+	}
+	return ExecCapability(execCap)
+}
+
+func (d *Device) GlobalMemCacheType() MemCacheType {
+	var memType C.cl_device_mem_cache_type
+	if err := C.clGetDeviceInfo(d.id, C.CL_DEVICE_GLOBAL_MEM_CACHE_TYPE, C.size_t(unsafe.Sizeof(memType)), unsafe.Pointer(&memType), nil); err != C.CL_SUCCESS {
+		return MemCacheType(C.CL_NONE)
+	}
+	return MemCacheType(memType)
+}
+
+// Maximum number of work-items that can be specified in each dimension of the work-group to clEnqueueNDRangeKernel.
+//
+// Returns n size_t entries, where n is the value returned by the query for CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS.
+//
+// The minimum value is (1, 1, 1) for devices that are not of type CL_DEVICE_TYPE_CUSTOM.
+func (d *Device) MaxWorkItemSizes() []int {
+	dims := d.MaxWorkItemDimensions()
+	sizes := make([]C.size_t, dims)
+	if err := C.clGetDeviceInfo(d.id, C.CL_DEVICE_MAX_WORK_ITEM_SIZES, C.size_t(int(unsafe.Sizeof(sizes[0]))*dims), unsafe.Pointer(&sizes[0]), nil); err != C.CL_SUCCESS {
+		panic("Failed to get max work item sizes")
+	}
+	intSizes := make([]int, dims)
+	for i, s := range sizes {
+		intSizes[i] = int(s)
+	}
+	return intSizes
+}
+
+func (d *Device) ParentDevice() *Device {
+	var deviceId C.cl_device_id
+	if err := C.clGetDeviceInfo(d.id, C.CL_DEVICE_PARENT_DEVICE, C.size_t(unsafe.Sizeof(deviceId)), unsafe.Pointer(&deviceId), nil); err != C.CL_SUCCESS {
+		panic("ParentDevice failed")
+	}
+	if deviceId == nil {
+		return nil
+	}
+	return &Device{id: deviceId}
 }
