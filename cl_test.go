@@ -129,11 +129,11 @@ func TestHello(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateKernel failed: %+v", err)
 	}
-	input, err := context.CreateBuffer(MemReadOnly, 4*len(data), nil)
+	input, err := context.CreateEmptyBuffer(MemReadOnly, 4*len(data))
 	if err != nil {
 		t.Fatalf("CreateBuffer failed for input: %+v", err)
 	}
-	output, err := context.CreateBuffer(MemReadOnly, 4*len(data), nil)
+	output, err := context.CreateEmptyBuffer(MemReadOnly, 4*len(data))
 	if err != nil {
 		t.Fatalf("CreateBuffer failed for output: %+v", err)
 	}
