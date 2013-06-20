@@ -357,7 +357,7 @@ const (
 // The inverse conversion is the reverse process. The formats are currently only available on the CPU with
 // the CL_RGBA channel layout.
 const (
-	ChannelDataTypeSFixed14Apple = C.CL_SFIXED14_APPLE // Introduced in MacOS X.7.
+	ChannelDataTypeSFixed14Apple ChannelDataType = C.CL_SFIXED14_APPLE // Introduced in MacOS X.7.
 )
 
 var channelDataTypeNameMap = map[ChannelDataType]string{
@@ -490,6 +490,16 @@ func (e *Event) SetUserEventStatus(status int) error {
 	return toError(C.clSetUserEventStatus(e.clEvent, C.cl_int(status)))
 }
 
+// Waits on the host thread for commands identified by event objects in
+// events to complete. A command is considered complete if its execution
+// status is CL_COMPLETE or a negative value. The events specified in
+// event_list act as synchronization points.
+//
+// If the cl_khr_gl_event extension is enabled, event objects can also be
+// used to reflect the status of an OpenGL sync object. The sync object
+// in turn refers to a fence command executing in an OpenGL command
+// stream. This provides another method of coordinating sharing of buffers
+// and images between OpenGL and OpenCL.
 func WaitForEvents(events []*Event) error {
 	return toError(C.clWaitForEvents(C.cl_uint(len(events)), eventListPtr(events)))
 }

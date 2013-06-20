@@ -89,6 +89,9 @@ func buildDeviceIdList(devices []*Device) []C.cl_device_id {
 	return deviceIds
 }
 
+// Obtain the list of devices available on a platform. 'platform' refers
+// to the platform returned by GetPlatforms or can be nil. If platform
+// is nil, the behavior is implementation-defined.
 func GetDevices(platform *Platform, deviceType DeviceType) ([]*Device, error) {
 	var deviceIds [maxDeviceCount]C.cl_device_id
 	var numDevices C.cl_uint
