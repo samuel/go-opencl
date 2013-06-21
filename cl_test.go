@@ -129,6 +129,15 @@ func TestHello(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateKernel failed: %+v", err)
 	}
+	for i := 0; i < 3; i++ {
+		name, err := kernel.ArgName(i)
+		if err != nil {
+			t.Errorf("GetKernelArgInfo for name failed: %+v", err)
+			break
+		} else {
+			t.Logf("Kernel arg %d: %s", i, name)
+		}
+	}
 	input, err := context.CreateEmptyBuffer(MemReadOnly, 4*len(data))
 	if err != nil {
 		t.Fatalf("CreateBuffer failed for input: %+v", err)
@@ -140,14 +149,8 @@ func TestHello(t *testing.T) {
 	if _, err := queue.EnqueueWriteBufferFloat32(input, true, 0, data[:], nil); err != nil {
 		t.Fatalf("EnqueueWriteBufferFloat32 failed: %+v", err)
 	}
-	if err := kernel.SetKernelArgBuffer(0, input); err != nil {
-		t.Fatalf("SetKernelArgBuffer failed for input: %+v", err)
-	}
-	if err := kernel.SetKernelArgBuffer(1, output); err != nil {
-		t.Fatalf("SetKernelArgBuffer failed for output: %+v", err)
-	}
-	if err := kernel.SetKernelArgUint32(2, uint32(len(data))); err != nil {
-		t.Fatalf("SetKernelArgBuffer failed for count: %+v", err)
+	if err := kernel.SetArgs(input, output, uint32(len(data))); err != nil {
+		t.Fatalf("SetKernelArgs failed: %+v", err)
 	}
 
 	local, err := kernel.WorkGroupSize(device)

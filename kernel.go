@@ -4,8 +4,18 @@ package cl
 import "C"
 
 import (
+	"fmt"
 	"unsafe"
 )
+
+type ErrUnsupportedArgumentType struct {
+	Index int
+	Value interface{}
+}
+
+func (e ErrUnsupportedArgumentType) Error() string {
+	return fmt.Sprintf("cl: unsupported argument type for index %d: %+v", e.Index, e.Value)
+}
 
 type Kernel struct {
 	clKernel C.cl_kernel
@@ -23,20 +33,48 @@ func (k *Kernel) Release() {
 	releaseKernel(k)
 }
 
-func (k *Kernel) SetKernelArg(index, argSize int, arg unsafe.Pointer) error {
+func (k *Kernel) SetArgs(args ...interface{}) error {
+	for index, arg := range args {
+		if err := k.SetArg(index, arg); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (k *Kernel) SetArg(index int, arg interface{}) error {
+	switch val := arg.(type) {
+	case uint32:
+		return k.SetArgUint32(index, val)
+	case int32:
+		return k.SetArgInt32(index, val)
+	case float32:
+		return k.SetArgFloat32(index, val)
+	case *MemObject:
+		return k.SetArgBuffer(index, val)
+	default:
+		return ErrUnsupportedArgumentType{Index: index, Value: arg}
+	}
+}
+
+func (k *Kernel) SetArgBuffer(index int, buffer *MemObject) error {
+	return k.SetArgUnsafe(index, int(unsafe.Sizeof(buffer.clMem)), unsafe.Pointer(&buffer.clMem))
+}
+
+func (k *Kernel) SetArgFloat32(index int, val float32) error {
+	return k.SetArgUnsafe(index, int(unsafe.Sizeof(val)), unsafe.Pointer(&val))
+}
+
+func (k *Kernel) SetArgInt32(index int, val int32) error {
+	return k.SetArgUnsafe(index, int(unsafe.Sizeof(val)), unsafe.Pointer(&val))
+}
+
+func (k *Kernel) SetArgUint32(index int, val uint32) error {
+	return k.SetArgUnsafe(index, int(unsafe.Sizeof(val)), unsafe.Pointer(&val))
+}
+
+func (k *Kernel) SetArgUnsafe(index, argSize int, arg unsafe.Pointer) error {
 	return toError(C.clSetKernelArg(k.clKernel, C.cl_uint(index), C.size_t(argSize), arg))
-}
-
-func (k *Kernel) SetKernelArgBuffer(index int, buffer *MemObject) error {
-	return k.SetKernelArg(index, int(unsafe.Sizeof(buffer.clMem)), unsafe.Pointer(&buffer.clMem))
-}
-
-func (k *Kernel) SetKernelArgInt32(index int, val int32) error {
-	return k.SetKernelArg(index, int(unsafe.Sizeof(val)), unsafe.Pointer(&val))
-}
-
-func (k *Kernel) SetKernelArgUint32(index int, val uint32) error {
-	return k.SetKernelArg(index, int(unsafe.Sizeof(val)), unsafe.Pointer(&val))
 }
 
 func (k *Kernel) PreferredWorkGroupSizeMultiple(device *Device) (int, error) {
@@ -57,11 +95,11 @@ func (k *Kernel) NumArgs() (int, error) {
 	return int(num), toError(err)
 }
 
-// func (k *Kernel) ArgName(index int) (string, error) {
-// 	var strC [1024]byte
-// 	var strN C.size_t
-// 	if err := C.getKernelArgInfo(k.clKernel, CL_KERNEL_ARG_NAME, 1024, unsafe.Pointer(&strC[0]), &strN); err != C.CL_SUCCESS {
-// 		return "", toError(err)
-// 	}
-// 	return string(strC[:strN]), nil
-// }
+func (k *Kernel) ArgName(index int) (string, error) {
+	var strC [1024]byte
+	var strN C.size_t
+	if err := C.clGetKernelArgInfo(k.clKernel, C.cl_uint(index), C.CL_KERNEL_ARG_NAME, 1024, unsafe.Pointer(&strC[0]), &strN); err != C.CL_SUCCESS {
+		return "", toError(err)
+	}
+	return string(strC[:strN]), nil
+}
