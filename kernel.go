@@ -44,6 +44,10 @@ func (k *Kernel) SetArgs(args ...interface{}) error {
 
 func (k *Kernel) SetArg(index int, arg interface{}) error {
 	switch val := arg.(type) {
+	case uint8:
+		return k.SetArgUint8(index, val)
+	case int8:
+		return k.SetArgInt8(index, val)
 	case uint32:
 		return k.SetArgUint32(index, val)
 	case int32:
@@ -62,6 +66,14 @@ func (k *Kernel) SetArgBuffer(index int, buffer *MemObject) error {
 }
 
 func (k *Kernel) SetArgFloat32(index int, val float32) error {
+	return k.SetArgUnsafe(index, int(unsafe.Sizeof(val)), unsafe.Pointer(&val))
+}
+
+func (k *Kernel) SetArgInt8(index int, val int8) error {
+	return k.SetArgUnsafe(index, int(unsafe.Sizeof(val)), unsafe.Pointer(&val))
+}
+
+func (k *Kernel) SetArgUint8(index int, val uint8) error {
 	return k.SetArgUnsafe(index, int(unsafe.Sizeof(val)), unsafe.Pointer(&val))
 }
 
