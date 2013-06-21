@@ -13,6 +13,7 @@ type Platform struct {
 	id C.cl_platform_id
 }
 
+// Obtain the list of platforms available.
 func GetPlatforms() ([]*Platform, error) {
 	var platformIds [maxPlatforms]C.cl_platform_id
 	var nPlatforms C.cl_uint
