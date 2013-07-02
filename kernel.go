@@ -22,6 +22,8 @@ type Kernel struct {
 	name     string
 }
 
+type LocalBuffer int
+
 func releaseKernel(k *Kernel) {
 	if k.clKernel != nil {
 		C.clReleaseKernel(k.clKernel)
@@ -56,6 +58,8 @@ func (k *Kernel) SetArg(index int, arg interface{}) error {
 		return k.SetArgFloat32(index, val)
 	case *MemObject:
 		return k.SetArgBuffer(index, val)
+	case LocalBuffer:
+		return k.SetArgLocal(index, int(val))
 	default:
 		return ErrUnsupportedArgumentType{Index: index, Value: arg}
 	}
@@ -83,6 +87,10 @@ func (k *Kernel) SetArgInt32(index int, val int32) error {
 
 func (k *Kernel) SetArgUint32(index int, val uint32) error {
 	return k.SetArgUnsafe(index, int(unsafe.Sizeof(val)), unsafe.Pointer(&val))
+}
+
+func (k *Kernel) SetArgLocal(index int, size int) error {
+	return k.SetArgUnsafe(index, size, nil)
 }
 
 func (k *Kernel) SetArgUnsafe(index, argSize int, arg unsafe.Pointer) error {

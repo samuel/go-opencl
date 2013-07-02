@@ -209,5 +209,9 @@ func (ctx *Context) CreateUserEvent() (*Event, error) {
 	return newEvent(clEvent), nil
 }
 
+func (ctx *Context) Release() {
+	releaseContext(ctx)
+}
+
 // http://www.khronos.org/registry/cl/sdk/1.2/docs/man/xhtml/clCreateSubBuffer.html
 // func (memObject *MemObject) CreateSubBuffer(flags MemFlag, bufferCreateType BufferCreateType, )
