@@ -1,5 +1,5 @@
 /*
-Package cl provides a binding to the OpenCL api. It's mostly a low-level
+Package cl11 provides a binding to the OpenCL 1.1 api. It's mostly a low-level
 wrapper that avoids adding functionality while still making the interface
 a little more friendly and easy to use.
 
@@ -14,7 +14,7 @@ better control over the life cycle of resources while having a fall back
 to avoid leaks. This is similar to how file handles and such are handled
 in the Go standard packages.
 */
-package cl
+package cl11
 
 // #include <OpenCL/opencl.h>
 // #cgo linux pkg-config: OpenCL
