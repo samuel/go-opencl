@@ -63,6 +63,7 @@ func (k *Kernel) SetArg(index int, arg interface{}) error {
 	default:
 		return ErrUnsupportedArgumentType{Index: index, Value: arg}
 	}
+	return nil
 }
 
 func (k *Kernel) SetArgBuffer(index int, buffer *MemObject) error {

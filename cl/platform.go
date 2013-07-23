@@ -46,6 +46,7 @@ func (p *Platform) Name() string {
 	} else {
 		return str
 	}
+	return ""
 }
 
 func (p *Platform) Vendor() string {
@@ -54,6 +55,7 @@ func (p *Platform) Vendor() string {
 	} else {
 		return str
 	}
+	return ""
 }
 
 func (p *Platform) Profile() string {
@@ -62,6 +64,7 @@ func (p *Platform) Profile() string {
 	} else {
 		return str
 	}
+	return ""
 }
 
 func (p *Platform) Version() string {
@@ -70,6 +73,7 @@ func (p *Platform) Version() string {
 	} else {
 		return str
 	}
+	return ""
 }
 
 func (p *Platform) Extensions() string {
@@ -78,4 +82,5 @@ func (p *Platform) Extensions() string {
 	} else {
 		return str
 	}
+	return ""
 }
