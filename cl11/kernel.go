@@ -63,6 +63,7 @@ func (k *Kernel) SetArg(index int, arg interface{}) error {
 	default:
 		return ErrUnsupportedArgumentType{Index: index, Value: arg}
 	}
+	return nil
 }
 
 func (k *Kernel) SetArgBuffer(index int, buffer *MemObject) error {
@@ -113,13 +114,4 @@ func (k *Kernel) NumArgs() (int, error) {
 	var num C.cl_uint
 	err := C.clGetKernelInfo(k.clKernel, C.CL_KERNEL_NUM_ARGS, C.size_t(unsafe.Sizeof(num)), unsafe.Pointer(&num), nil)
 	return int(num), toError(err)
-}
-
-func (k *Kernel) ArgName(index int) (string, error) {
-	var strC [1024]byte
-	var strN C.size_t
-	if err := C.clGetKernelArgInfo(k.clKernel, C.cl_uint(index), C.CL_KERNEL_ARG_NAME, 1024, unsafe.Pointer(&strC[0]), &strN); err != C.CL_SUCCESS {
-		return "", toError(err)
-	}
-	return string(strC[:strN]), nil
 }

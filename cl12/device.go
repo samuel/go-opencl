@@ -10,13 +10,14 @@ import (
 
 const maxDeviceCount = 64
 
-type DeviceType int
+type DeviceType uint
 
 const (
 	DeviceTypeCPU         DeviceType = C.CL_DEVICE_TYPE_CPU
 	DeviceTypeGPU         DeviceType = C.CL_DEVICE_TYPE_GPU
 	DeviceTypeAccelerator DeviceType = C.CL_DEVICE_TYPE_ACCELERATOR
 	DeviceTypeDefault     DeviceType = C.CL_DEVICE_TYPE_DEFAULT
+	DeviceTypeCustom      DeviceType = C.CL_DEVICE_TYPE_CUSTOM
 	DeviceTypeAll         DeviceType = C.CL_DEVICE_TYPE_ALL
 )
 

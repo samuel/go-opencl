@@ -1,6 +1,6 @@
-OpenCL 1.2 bindings for Go
+OpenCL 1.1/1.2 bindings for Go
 ==========================
 
-Documentation at <http://godoc.org/github.com/samuel/go-opencl>
+Documentation at <http://godoc.org/github.com/dennwc/opencl>
 
-Can look at cl_test.go for an example of use.
+You can look at cl_test.go for an example of use.
