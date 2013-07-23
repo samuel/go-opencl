@@ -17,6 +17,7 @@ const (
 	DeviceTypeGPU         DeviceType = C.CL_DEVICE_TYPE_GPU
 	DeviceTypeAccelerator DeviceType = C.CL_DEVICE_TYPE_ACCELERATOR
 	DeviceTypeDefault     DeviceType = C.CL_DEVICE_TYPE_DEFAULT
+	DeviceTypeCustom      DeviceType = C.CL_DEVICE_TYPE_CUSTOM
 	DeviceTypeAll         DeviceType = C.CL_DEVICE_TYPE_ALL
 )
 

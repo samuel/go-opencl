@@ -5,4 +5,7 @@ a little more friendly and easy to use.
 */
 package opencl
 
-import _ "github.com/dennwc/opencl/cl"
+import (
+	_ "github.com/dennwc/opencl/cl11"
+	_ "github.com/dennwc/opencl/cl12"
+)
