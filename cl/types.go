@@ -211,7 +211,7 @@ func (ct MemCacheType) String() string {
 	case MemCacheTypeReadWriteCache:
 		return "ReadWrite"
 	}
-	return fmt.Sprintf("Unknown(%x)", ct)
+	return fmt.Sprintf("Unknown(%x)", int(ct))
 }
 
 type MemFlag int
