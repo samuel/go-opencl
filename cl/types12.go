@@ -28,7 +28,7 @@ const (
 func init() {
 	errorMap[C.CL_COMPILE_PROGRAM_FAILURE] = ErrCompileProgramFailure
 	errorMap[C.CL_DEVICE_PARTITION_FAILED] = ErrDevicePartitionFailed
-	errorMAp[C.CL_INVALID_COMPILER_OPTIONS] = ErrInvalidCompilerOptions
+	errorMap[C.CL_INVALID_COMPILER_OPTIONS] = ErrInvalidCompilerOptions
 	errorMap[C.CL_INVALID_DEVICE_PARTITION_COUNT] = ErrInvalidDevicePartitionCount
 	errorMap[C.CL_INVALID_IMAGE_DESCRIPTOR] = ErrInvalidImageDescriptor
 	errorMap[C.CL_INVALID_LINKER_OPTIONS] = ErrInvalidLinkerOptions
