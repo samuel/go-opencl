@@ -52,7 +52,7 @@ func TestHello(t *testing.T) {
 		t.Logf("Device %d (%s): %s", i, d.Type(), d.Name())
 		t.Logf("  Address Bits: %d", d.AddressBits())
 		t.Logf("  Available: %+v", d.Available())
-		t.Logf("  Built-In Kernels: %s", d.BuiltInKernels())
+		// t.Logf("  Built-In Kernels: %s", d.BuiltInKernels())
 		t.Logf("  Compiler Available: %+v", d.CompilerAvailable())
 		t.Logf("  Double FP Config: %s", d.DoubleFPConfig())
 		t.Logf("  Driver Version: %s", d.DriverVersion())
@@ -67,9 +67,9 @@ func TestHello(t *testing.T) {
 		t.Logf("  Image Support: %+v", d.ImageSupport())
 		t.Logf("  Image2D Max Dimensions: %d x %d", d.Image2DMaxWidth(), d.Image2DMaxHeight())
 		t.Logf("  Image3D Max Dimenionns: %d x %d x %d", d.Image3DMaxWidth(), d.Image3DMaxHeight(), d.Image3DMaxDepth())
-		t.Logf("  Image Max Buffer Size: %d", d.ImageMaxBufferSize())
-		t.Logf("  Image Max Array Size: %d", d.ImageMaxArraySize())
-		t.Logf("  Linker Available: %+v", d.LinkerAvailable())
+		// t.Logf("  Image Max Buffer Size: %d", d.ImageMaxBufferSize())
+		// t.Logf("  Image Max Array Size: %d", d.ImageMaxArraySize())
+		// t.Logf("  Linker Available: %+v", d.LinkerAvailable())
 		t.Logf("  Little Endian: %+v", d.EndianLittle())
 		t.Logf("  Local Mem Size Size: %d KB", d.LocalMemSize()/1024)
 		t.Logf("  Local Mem Type: %s", d.LocalMemType())
@@ -94,7 +94,7 @@ func TestHello(t *testing.T) {
 		t.Logf("  Native Vector Width Double: %d", d.NativeVectorWidthDouble())
 		t.Logf("  Native Vector Width Half: %d", d.NativeVectorWidthHalf())
 		t.Logf("  OpenCL C Version: %s", d.OpenCLCVersion())
-		t.Logf("  Parent Device: %+v", d.ParentDevice())
+		// t.Logf("  Parent Device: %+v", d.ParentDevice())
 		t.Logf("  Profile: %s", d.Profile())
 		t.Logf("  Profiling Timer Resolution: %d", d.ProfilingTimerResolution())
 		t.Logf("  Vendor: %s", d.Vendor())
@@ -131,7 +131,9 @@ func TestHello(t *testing.T) {
 	}
 	for i := 0; i < 3; i++ {
 		name, err := kernel.ArgName(i)
-		if err != nil {
+		if err == ErrUnsupported {
+			break
+		} else if err != nil {
 			t.Errorf("GetKernelArgInfo for name failed: %+v", err)
 			break
 		} else {

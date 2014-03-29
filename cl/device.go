@@ -1,6 +1,6 @@
 package cl
 
-// #include <OpenCL/opencl.h>
+// #include "cl.h"
 import "C"
 
 import (
@@ -10,7 +10,7 @@ import (
 
 const maxDeviceCount = 64
 
-type DeviceType int
+type DeviceType uint
 
 const (
 	DeviceTypeCPU         DeviceType = C.CL_DEVICE_TYPE_CPU
@@ -23,25 +23,23 @@ const (
 type FPConfig int
 
 const (
-	FPConfigDenorm                     FPConfig = C.CL_FP_DENORM           // denorms are supported
-	FPConfigInfNaN                     FPConfig = C.CL_FP_INF_NAN          // INF and NaNs are supported
-	FPConfigRoundToNearest             FPConfig = C.CL_FP_ROUND_TO_NEAREST // round to nearest even rounding mode supported
-	FPConfigRoundToZero                FPConfig = C.CL_FP_ROUND_TO_ZERO    // round to zero rounding mode supported
-	FPConfigRoundToInf                 FPConfig = C.CL_FP_ROUND_TO_INF     // round to positive and negative infinity rounding modes supported
-	FPConfigFMA                        FPConfig = C.CL_FP_FMA              // IEEE754-2008 fused multiply-add is supported
-	FPConfigSoftFloat                  FPConfig = C.CL_FP_SOFT_FLOAT       // Basic floating-point operations (such as addition, subtraction, multiplication) are implemented in software
-	FPConfigCorrectlyRoundedDivideSqrt FPConfig = C.CL_FP_CORRECTLY_ROUNDED_DIVIDE_SQRT
+	FPConfigDenorm         FPConfig = C.CL_FP_DENORM           // denorms are supported
+	FPConfigInfNaN         FPConfig = C.CL_FP_INF_NAN          // INF and NaNs are supported
+	FPConfigRoundToNearest FPConfig = C.CL_FP_ROUND_TO_NEAREST // round to nearest even rounding mode supported
+	FPConfigRoundToZero    FPConfig = C.CL_FP_ROUND_TO_ZERO    // round to zero rounding mode supported
+	FPConfigRoundToInf     FPConfig = C.CL_FP_ROUND_TO_INF     // round to positive and negative infinity rounding modes supported
+	FPConfigFMA            FPConfig = C.CL_FP_FMA              // IEEE754-2008 fused multiply-add is supported
+	FPConfigSoftFloat      FPConfig = C.CL_FP_SOFT_FLOAT       // Basic floating-point operations (such as addition, subtraction, multiplication) are implemented in software
 )
 
 var fpConfigNameMap = map[FPConfig]string{
-	FPConfigDenorm:                     "Denorm",
-	FPConfigInfNaN:                     "InfNaN",
-	FPConfigRoundToNearest:             "RoundToNearest",
-	FPConfigRoundToZero:                "RoundToZero",
-	FPConfigRoundToInf:                 "RoundToInf",
-	FPConfigFMA:                        "FMA",
-	FPConfigSoftFloat:                  "SoftFloat",
-	FPConfigCorrectlyRoundedDivideSqrt: "CorrectlyRoundedDivideSqrt",
+	FPConfigDenorm:         "Denorm",
+	FPConfigInfNaN:         "InfNaN",
+	FPConfigRoundToNearest: "RoundToNearest",
+	FPConfigRoundToZero:    "RoundToZero",
+	FPConfigRoundToInf:     "RoundToInf",
+	FPConfigFMA:            "FMA",
+	FPConfigSoftFloat:      "SoftFloat",
 }
 
 func (c FPConfig) String() string {
@@ -182,11 +180,6 @@ func (d *Device) Name() string {
 
 func (d *Device) Vendor() string {
 	str, _ := d.getInfoString(C.CL_DEVICE_VENDOR, true)
-	return str
-}
-
-func (d *Device) BuiltInKernels() string {
-	str, _ := d.getInfoString(C.CL_DEVICE_BUILT_IN_KERNELS, true)
 	return str
 }
 
@@ -352,18 +345,6 @@ func (d *Device) Image3DMaxWidth() int {
 	return int(val)
 }
 
-// Max number of pixels for a 1D image created from a buffer object. The minimum value is 65536 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
-func (d *Device) ImageMaxBufferSize() int {
-	val, _ := d.getInfoSize(C.CL_DEVICE_IMAGE_MAX_BUFFER_SIZE, true)
-	return int(val)
-}
-
-// Max number of images in a 1D or 2D image array. The minimum value is 2048 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE
-func (d *Device) ImageMaxArraySize() int {
-	val, _ := d.getInfoSize(C.CL_DEVICE_IMAGE_MAX_ARRAY_SIZE, true)
-	return int(val)
-}
-
 // Max size in bytes of the arguments that can be passed to a kernel. The
 // minimum value is 1024 for devices that are not of type CL_DEVICE_TYPE_CUSTOM.
 // For this minimum value, only a maximum of 128 arguments can be passed to a kernel.
@@ -421,12 +402,6 @@ func (d *Device) Available() bool {
 
 func (d *Device) CompilerAvailable() bool {
 	val, _ := d.getInfoBool(C.CL_DEVICE_COMPILER_AVAILABLE, true)
-	return val
-}
-
-// Is CL_FALSE if the implementation does not have a linker available. Is CL_TRUE if the linker is available. This can be CL_FALSE for the embedded platform profile only. This must be CL_TRUE if CL_DEVICE_COMPILER_AVAILABLE is CL_TRUE
-func (d *Device) LinkerAvailable() bool {
-	val, _ := d.getInfoBool(C.CL_DEVICE_LINKER_AVAILABLE, true)
 	return val
 }
 
@@ -523,15 +498,4 @@ func (d *Device) MaxWorkItemSizes() []int {
 		intSizes[i] = int(s)
 	}
 	return intSizes
-}
-
-func (d *Device) ParentDevice() *Device {
-	var deviceId C.cl_device_id
-	if err := C.clGetDeviceInfo(d.id, C.CL_DEVICE_PARENT_DEVICE, C.size_t(unsafe.Sizeof(deviceId)), unsafe.Pointer(&deviceId), nil); err != C.CL_SUCCESS {
-		panic("ParentDevice failed")
-	}
-	if deviceId == nil {
-		return nil
-	}
-	return &Device{id: deviceId}
 }

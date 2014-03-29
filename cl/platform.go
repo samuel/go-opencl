@@ -1,6 +1,6 @@
 package cl
 
-// #include <OpenCL/opencl.h>
+// #include "cl.h"
 import "C"
 
 import (

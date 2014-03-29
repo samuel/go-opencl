@@ -1,6 +1,6 @@
 package cl
 
-// #include <OpenCL/opencl.h>
+// #include "cl.h"
 import "C"
 
 import (
@@ -98,11 +98,6 @@ var errorMap = map[C.cl_int]error{
 	C.CL_MAP_FAILURE:                               ErrMapFailure,
 	C.CL_MISALIGNED_SUB_BUFFER_OFFSET:              ErrMisalignedSubBufferOffset,
 	C.CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST: ErrExecStatusErrorForEventsInWaitList,
-	C.CL_COMPILE_PROGRAM_FAILURE:                   ErrCompileProgramFailure,
-	C.CL_LINKER_NOT_AVAILABLE:                      ErrLinkerNotAvailable,
-	C.CL_LINK_PROGRAM_FAILURE:                      ErrLinkProgramFailure,
-	C.CL_DEVICE_PARTITION_FAILED:                   ErrDevicePartitionFailed,
-	C.CL_KERNEL_ARG_INFO_NOT_AVAILABLE:             ErrKernelArgInfoNotAvailable,
 	C.CL_INVALID_VALUE:                             ErrInvalidValue,
 	C.CL_INVALID_DEVICE_TYPE:                       ErrInvalidDeviceType,
 	C.CL_INVALID_PLATFORM:                          ErrInvalidPlatform,
@@ -138,10 +133,6 @@ var errorMap = map[C.cl_int]error{
 	C.CL_INVALID_MIP_LEVEL:                         ErrInvalidMipLevel,
 	C.CL_INVALID_GLOBAL_WORK_SIZE:                  ErrInvalidGlobalWorkSize,
 	C.CL_INVALID_PROPERTY:                          ErrInvalidProperty,
-	C.CL_INVALID_IMAGE_DESCRIPTOR:                  ErrInvalidImageDescriptor,
-	C.CL_INVALID_COMPILER_OPTIONS:                  ErrInvalidCompilerOptions,
-	C.CL_INVALID_LINKER_OPTIONS:                    ErrInvalidLinkerOptions,
-	C.CL_INVALID_DEVICE_PARTITION_COUNT:            ErrInvalidDevicePartitionCount,
 }
 
 func toError(code C.cl_int) error {
@@ -217,27 +208,20 @@ func (ct MemCacheType) String() string {
 type MemFlag int
 
 const (
-	MemReadWrite     MemFlag = C.CL_MEM_READ_WRITE
-	MemWriteOnly     MemFlag = C.CL_MEM_WRITE_ONLY
-	MemReadOnly      MemFlag = C.CL_MEM_READ_ONLY
-	MemUseHostPtr    MemFlag = C.CL_MEM_USE_HOST_PTR
-	MemAllocHostPtr  MemFlag = C.CL_MEM_ALLOC_HOST_PTR
-	MemCopyHostPtr   MemFlag = C.CL_MEM_COPY_HOST_PTR
-	MemHostWriteOnly MemFlag = C.CL_MEM_HOST_WRITE_ONLY // OpenCL 1.2
-	MemHostReadOnly  MemFlag = C.CL_MEM_HOST_READ_ONLY  // OpenCL 1.2
-	MemHostNoAccess  MemFlag = C.CL_MEM_HOST_NO_ACCESS  // OpenCL 1.2
+	MemReadWrite    MemFlag = C.CL_MEM_READ_WRITE
+	MemWriteOnly    MemFlag = C.CL_MEM_WRITE_ONLY
+	MemReadOnly     MemFlag = C.CL_MEM_READ_ONLY
+	MemUseHostPtr   MemFlag = C.CL_MEM_USE_HOST_PTR
+	MemAllocHostPtr MemFlag = C.CL_MEM_ALLOC_HOST_PTR
+	MemCopyHostPtr  MemFlag = C.CL_MEM_COPY_HOST_PTR
 )
 
 type MemObjectType int
 
 const (
-	MemObjectTypeBuffer        MemObjectType = C.CL_MEM_OBJECT_BUFFER
-	MemObjectTypeImage2D       MemObjectType = C.CL_MEM_OBJECT_IMAGE2D
-	MemObjectTypeImage3D       MemObjectType = C.CL_MEM_OBJECT_IMAGE3D
-	MemObjectTypeImage2DArray  MemObjectType = C.CL_MEM_OBJECT_IMAGE2D_ARRAY
-	MemObjectTypeImage1D       MemObjectType = C.CL_MEM_OBJECT_IMAGE1D
-	MemObjectTypeImage1DArray  MemObjectType = C.CL_MEM_OBJECT_IMAGE1D_ARRAY
-	MemObjectTypeImage1DBuffer MemObjectType = C.CL_MEM_OBJECT_IMAGE1D_BUFFER
+	MemObjectTypeBuffer  MemObjectType = C.CL_MEM_OBJECT_BUFFER
+	MemObjectTypeImage2D MemObjectType = C.CL_MEM_OBJECT_IMAGE2D
+	MemObjectTypeImage3D MemObjectType = C.CL_MEM_OBJECT_IMAGE3D
 )
 
 type MapFlag int
@@ -246,13 +230,6 @@ const (
 	// This flag specifies that the region being mapped in the memory object is being mapped for reading.
 	MapFlagRead  MapFlag = C.CL_MAP_READ
 	MapFlagWrite MapFlag = C.CL_MAP_WRITE
-	// This flag specifies that the region being mapped in the memory object is being mapped for writing.
-	//
-	// The contents of the region being mapped are to be discarded. This is typically the case when the
-	// region being mapped is overwritten by the host. This flag allows the implementation to no longer
-	// guarantee that the pointer returned by clEnqueueMapBuffer or clEnqueueMapImage contains the
-	// latest bits in the region being mapped which can be a significant performance enhancement.
-	MapFlagWriteInvalidateRegion MapFlag = C.CL_MAP_WRITE_INVALIDATE_REGION
 )
 
 func (mf MapFlag) toCl() C.cl_map_flags {
@@ -262,39 +239,35 @@ func (mf MapFlag) toCl() C.cl_map_flags {
 type ChannelOrder int
 
 const (
-	ChannelOrderR            ChannelOrder = C.CL_R
-	ChannelOrderA            ChannelOrder = C.CL_A
-	ChannelOrderRG           ChannelOrder = C.CL_RG
-	ChannelOrderRA           ChannelOrder = C.CL_RA
-	ChannelOrderRGB          ChannelOrder = C.CL_RGB
-	ChannelOrderRGBA         ChannelOrder = C.CL_RGBA
-	ChannelOrderBGRA         ChannelOrder = C.CL_BGRA
-	ChannelOrderARGB         ChannelOrder = C.CL_ARGB
-	ChannelOrderIntensity    ChannelOrder = C.CL_INTENSITY
-	ChannelOrderLuminance    ChannelOrder = C.CL_LUMINANCE
-	ChannelOrderRx           ChannelOrder = C.CL_Rx
-	ChannelOrderRGx          ChannelOrder = C.CL_RGx
-	ChannelOrderRGBx         ChannelOrder = C.CL_RGBx
-	ChannelOrderDepth        ChannelOrder = C.CL_DEPTH
-	ChannelOrderDepthStencil ChannelOrder = C.CL_DEPTH_STENCIL
+	ChannelOrderR         ChannelOrder = C.CL_R
+	ChannelOrderA         ChannelOrder = C.CL_A
+	ChannelOrderRG        ChannelOrder = C.CL_RG
+	ChannelOrderRA        ChannelOrder = C.CL_RA
+	ChannelOrderRGB       ChannelOrder = C.CL_RGB
+	ChannelOrderRGBA      ChannelOrder = C.CL_RGBA
+	ChannelOrderBGRA      ChannelOrder = C.CL_BGRA
+	ChannelOrderARGB      ChannelOrder = C.CL_ARGB
+	ChannelOrderIntensity ChannelOrder = C.CL_INTENSITY
+	ChannelOrderLuminance ChannelOrder = C.CL_LUMINANCE
+	ChannelOrderRx        ChannelOrder = C.CL_Rx
+	ChannelOrderRGx       ChannelOrder = C.CL_RGx
+	ChannelOrderRGBx      ChannelOrder = C.CL_RGBx
 )
 
 var channelOrderNameMap = map[ChannelOrder]string{
-	ChannelOrderR:            "R",
-	ChannelOrderA:            "A",
-	ChannelOrderRG:           "RG",
-	ChannelOrderRA:           "RA",
-	ChannelOrderRGB:          "RGB",
-	ChannelOrderRGBA:         "RGBA",
-	ChannelOrderBGRA:         "BGRA",
-	ChannelOrderARGB:         "ARGB",
-	ChannelOrderIntensity:    "Intensity",
-	ChannelOrderLuminance:    "Luminance",
-	ChannelOrderRx:           "Rx",
-	ChannelOrderRGx:          "RGx",
-	ChannelOrderRGBx:         "RGBx",
-	ChannelOrderDepth:        "Depth",
-	ChannelOrderDepthStencil: "DepthStencil",
+	ChannelOrderR:         "R",
+	ChannelOrderA:         "A",
+	ChannelOrderRG:        "RG",
+	ChannelOrderRA:        "RA",
+	ChannelOrderRGB:       "RGB",
+	ChannelOrderRGBA:      "RGBA",
+	ChannelOrderBGRA:      "BGRA",
+	ChannelOrderARGB:      "ARGB",
+	ChannelOrderIntensity: "Intensity",
+	ChannelOrderLuminance: "Luminance",
+	ChannelOrderRx:        "Rx",
+	ChannelOrderRGx:       "RGx",
+	ChannelOrderRGBx:      "RGBx",
 }
 
 func (co ChannelOrder) String() string {
@@ -323,7 +296,6 @@ const (
 	ChannelDataTypeUnsignedInt32  ChannelDataType = C.CL_UNSIGNED_INT32
 	ChannelDataTypeHalfFloat      ChannelDataType = C.CL_HALF_FLOAT
 	ChannelDataTypeFloat          ChannelDataType = C.CL_FLOAT
-	ChannelDataTypeUNormInt24     ChannelDataType = C.CL_UNORM_INT24
 )
 
 var channelDataTypeNameMap = map[ChannelDataType]string{
@@ -342,7 +314,6 @@ var channelDataTypeNameMap = map[ChannelDataType]string{
 	ChannelDataTypeUnsignedInt32:  "UnsignedInt32",
 	ChannelDataTypeHalfFloat:      "HalfFloat",
 	ChannelDataTypeFloat:          "Float",
-	ChannelDataTypeUNormInt24:     "UNormInt24",
 }
 
 func (ct ChannelDataType) String() string {
@@ -363,32 +334,6 @@ func (f ImageFormat) toCl() C.cl_image_format {
 	format.image_channel_order = C.cl_channel_order(f.ChannelOrder)
 	format.image_channel_data_type = C.cl_channel_type(f.ChannelDataType)
 	return format
-}
-
-type ImageDescription struct {
-	Type                            MemObjectType
-	Width, Height, Depth            int
-	ArraySize, RowPitch, SlicePitch int
-	NumMipLevels, NumSamples        int
-	Buffer                          *MemObject
-}
-
-func (d ImageDescription) toCl() C.cl_image_desc {
-	var desc C.cl_image_desc
-	desc.image_type = C.cl_mem_object_type(d.Type)
-	desc.image_width = C.size_t(d.Width)
-	desc.image_height = C.size_t(d.Height)
-	desc.image_depth = C.size_t(d.Depth)
-	desc.image_array_size = C.size_t(d.ArraySize)
-	desc.image_row_pitch = C.size_t(d.RowPitch)
-	desc.image_slice_pitch = C.size_t(d.SlicePitch)
-	desc.num_mip_levels = C.cl_uint(d.NumMipLevels)
-	desc.num_samples = C.cl_uint(d.NumSamples)
-	desc.buffer = nil
-	if d.Buffer != nil {
-		desc.buffer = d.Buffer.clMem
-	}
-	return desc
 }
 
 type ProfilingInfo int

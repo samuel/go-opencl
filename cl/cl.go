@@ -16,7 +16,9 @@ in the Go standard packages.
 */
 package cl
 
-// #include <OpenCL/opencl.h>
-// #cgo linux pkg-config: OpenCL
+// #include "cl.h"
 // #cgo darwin LDFLAGS: -framework OpenCL
 import "C"
+import "errors"
+
+var ErrUnsupported = errors.New("cl: unsupported")
