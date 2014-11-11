@@ -1,6 +1,10 @@
 package cl
 
+// #ifdef __APPLE__
+// #include "OpenCL/opencl.h"
+// #else
 // #include "cl.h"
+// #endif
 import "C"
 
 // Extension: cl_APPLE_fixed_alpha_channel_orders
