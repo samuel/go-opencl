@@ -1,7 +1,11 @@
 package cl
 
 // #include <stdlib.h>
-// #include "cl.h"
+// #ifdef __APPLE__
+// #include "OpenCL/opencl.h"
+// #else
+// #include "CL/opencl.h"
+// #endif
 import "C"
 
 import (
