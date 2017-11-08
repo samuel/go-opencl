@@ -1,4 +1,4 @@
-// +build cl12
+// +build !cl10
 
 package cl
 
@@ -16,7 +16,7 @@ const (
 	MemObjectTypeImage1DArray  MemObjectType   = C.CL_MEM_OBJECT_IMAGE1D_ARRAY
 	MemObjectTypeImage1DBuffer MemObjectType   = C.CL_MEM_OBJECT_IMAGE1D_BUFFER
 	MemObjectTypeImage2DArray  MemObjectType   = C.CL_MEM_OBJECT_IMAGE2D_ARRAY
-	// This flag specifies that the region being mapped in the memory object is being mapped for writing.
+	// MapFlagWriteInvalidateRegion specifies that the region being mapped in the memory object is being mapped for writing.
 	//
 	// The contents of the region being mapped are to be discarded. This is typically the case when the
 	// region being mapped is overwritten by the host. This flag allows the implementation to no longer

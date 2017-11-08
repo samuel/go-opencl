@@ -26,22 +26,22 @@ func releaseCommandQueue(q *CommandQueue) {
 	}
 }
 
-// Call clReleaseCommandQueue on the CommandQueue. Using the CommandQueue after Release will cause a panick.
+// Release calls clReleaseCommandQueue on the CommandQueue. Using the CommandQueue after Release will cause a panick.
 func (q *CommandQueue) Release() {
 	releaseCommandQueue(q)
 }
 
-// Blocks until all previously queued OpenCL commands in a command-queue are issued to the associated device and have completed.
+// Finish blocks until all previously queued OpenCL commands in a command-queue are issued to the associated device and have completed.
 func (q *CommandQueue) Finish() error {
 	return toError(C.clFinish(q.clQueue))
 }
 
-// Issues all previously queued OpenCL commands in a command-queue to the device associated with the command-queue.
+// Flush issues all previously queued OpenCL commands in a command-queue to the device associated with the command-queue.
 func (q *CommandQueue) Flush() error {
 	return toError(C.clFinish(q.clQueue))
 }
 
-// Enqueues a command to map a region of the buffer object given by buffer into the host address space and returns a pointer to this mapped region.
+// EnqueueMapBuffer enqueues a command to map a region of the buffer object given by buffer into the host address space and returns a pointer to this mapped region.
 func (q *CommandQueue) EnqueueMapBuffer(buffer *MemObject, blocking bool, flags MapFlag, offset, size int, eventWaitList []*Event) (*MappedMemObject, *Event, error) {
 	var event C.cl_event
 	var err C.cl_int
@@ -56,7 +56,7 @@ func (q *CommandQueue) EnqueueMapBuffer(buffer *MemObject, blocking bool, flags 
 	return &MappedMemObject{ptr: ptr, size: size}, ev, nil
 }
 
-// Enqueues a command to map a region of an image object into the host address space and returns a pointer to this mapped region.
+// EnqueueMapImage enqueues a command to map a region of an image object into the host address space and returns a pointer to this mapped region.
 func (q *CommandQueue) EnqueueMapImage(buffer *MemObject, blocking bool, flags MapFlag, origin, region [3]int, eventWaitList []*Event) (*MappedMemObject, *Event, error) {
 	cOrigin := sizeT3(origin)
 	cRegion := sizeT3(region)
@@ -75,7 +75,7 @@ func (q *CommandQueue) EnqueueMapImage(buffer *MemObject, blocking bool, flags M
 	return &MappedMemObject{ptr: ptr, size: size, rowPitch: int(rowPitch), slicePitch: int(slicePitch)}, ev, nil
 }
 
-// Enqueues a command to unmap a previously mapped region of a memory object.
+// EnqueueUnmapMemObject enqueues a command to unmap a previously mapped region of a memory object.
 func (q *CommandQueue) EnqueueUnmapMemObject(buffer *MemObject, mappedObj *MappedMemObject, eventWaitList []*Event) (*Event, error) {
 	var event C.cl_event
 	if err := C.clEnqueueUnmapMemObject(q.clQueue, buffer.clMem, mappedObj.ptr, C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event); err != C.CL_SUCCESS {
@@ -84,14 +84,14 @@ func (q *CommandQueue) EnqueueUnmapMemObject(buffer *MemObject, mappedObj *Mappe
 	return newEvent(event), nil
 }
 
-// Enqueues a command to copy a buffer object to another buffer object.
+// EnqueueCopyBuffer enqueues a command to copy a buffer object to another buffer object.
 func (q *CommandQueue) EnqueueCopyBuffer(srcBuffer, dstBuffer *MemObject, srcOffset, dstOffset, byteCount int, eventWaitList []*Event) (*Event, error) {
 	var event C.cl_event
 	err := toError(C.clEnqueueCopyBuffer(q.clQueue, srcBuffer.clMem, dstBuffer.clMem, C.size_t(srcOffset), C.size_t(dstOffset), C.size_t(byteCount), C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
 	return newEvent(event), err
 }
 
-// Enqueue commands to write to a buffer object from host memory.
+// EnqueueWriteBuffer enqueues commands to write to a buffer object from host memory.
 func (q *CommandQueue) EnqueueWriteBuffer(buffer *MemObject, blocking bool, offset, dataSize int, dataPtr unsafe.Pointer, eventWaitList []*Event) (*Event, error) {
 	var event C.cl_event
 	err := toError(C.clEnqueueWriteBuffer(q.clQueue, buffer.clMem, clBool(blocking), C.size_t(offset), C.size_t(dataSize), dataPtr, C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
@@ -104,7 +104,7 @@ func (q *CommandQueue) EnqueueWriteBufferFloat32(buffer *MemObject, blocking boo
 	return q.EnqueueWriteBuffer(buffer, blocking, offset, dataSize, dataPtr, eventWaitList)
 }
 
-// Enqueue commands to read from a buffer object to host memory.
+// EnqueueReadBuffer enqueues commands to read from a buffer object to host memory.
 func (q *CommandQueue) EnqueueReadBuffer(buffer *MemObject, blocking bool, offset, dataSize int, dataPtr unsafe.Pointer, eventWaitList []*Event) (*Event, error) {
 	var event C.cl_event
 	err := toError(C.clEnqueueReadBuffer(q.clQueue, buffer.clMem, clBool(blocking), C.size_t(offset), C.size_t(dataSize), dataPtr, C.cl_uint(len(eventWaitList)), eventListPtr(eventWaitList), &event))
@@ -117,7 +117,7 @@ func (q *CommandQueue) EnqueueReadBufferFloat32(buffer *MemObject, blocking bool
 	return q.EnqueueReadBuffer(buffer, blocking, offset, dataSize, dataPtr, eventWaitList)
 }
 
-// Enqueues a command to execute a kernel on a device.
+// EnqueueNDRangeKernel enqueues a command to execute a kernel on a device.
 func (q *CommandQueue) EnqueueNDRangeKernel(kernel *Kernel, globalWorkOffset, globalWorkSize, localWorkSize []int, eventWaitList []*Event) (*Event, error) {
 	workDim := len(globalWorkSize)
 	var globalWorkOffsetList []C.size_t
@@ -152,7 +152,7 @@ func (q *CommandQueue) EnqueueNDRangeKernel(kernel *Kernel, globalWorkOffset, gl
 	return newEvent(event), err
 }
 
-// Enqueues a command to read from a 2D or 3D image object to host memory.
+// EnqueueReadImage enqueues a command to read from a 2D or 3D image object to host memory.
 func (q *CommandQueue) EnqueueReadImage(image *MemObject, blocking bool, origin, region [3]int, rowPitch, slicePitch int, data []byte, eventWaitList []*Event) (*Event, error) {
 	cOrigin := sizeT3(origin)
 	cRegion := sizeT3(region)
@@ -161,7 +161,7 @@ func (q *CommandQueue) EnqueueReadImage(image *MemObject, blocking bool, origin,
 	return newEvent(event), err
 }
 
-// Enqueues a command to write from a 2D or 3D image object to host memory.
+// EnqueueWriteImage enqueues a command to write from a 2D or 3D image object to host memory.
 func (q *CommandQueue) EnqueueWriteImage(image *MemObject, blocking bool, origin, region [3]int, rowPitch, slicePitch int, data []byte, eventWaitList []*Event) (*Event, error) {
 	cOrigin := sizeT3(origin)
 	cRegion := sizeT3(region)

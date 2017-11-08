@@ -1,4 +1,4 @@
-// +build !cl12
+// +build cl10
 
 package cl
 

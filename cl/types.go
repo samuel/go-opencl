@@ -339,18 +339,18 @@ func (f ImageFormat) toCl() C.cl_image_format {
 type ProfilingInfo int
 
 const (
-	// A 64-bit value that describes the current device time counter in
+	// ProfilingInfoCommandQueued is a 64-bit value that describes the current device time counter in
 	// nanoseconds when the command identified by event is enqueued in
 	// a command-queue by the host.
 	ProfilingInfoCommandQueued ProfilingInfo = C.CL_PROFILING_COMMAND_QUEUED
-	// A 64-bit value that describes the current device time counter in
+	// ProfilingInfoCommandSubmit is a 64-bit value that describes the current device time counter in
 	// nanoseconds when the command identified by event that has been
 	// enqueued is submitted by the host to the device associated with the command-queue.
 	ProfilingInfoCommandSubmit ProfilingInfo = C.CL_PROFILING_COMMAND_SUBMIT
-	// A 64-bit value that describes the current device time counter in
+	// ProfilingInfoCommandStart is a 64-bit value that describes the current device time counter in
 	// nanoseconds when the command identified by event starts execution on the device.
 	ProfilingInfoCommandStart ProfilingInfo = C.CL_PROFILING_COMMAND_START
-	// A 64-bit value that describes the current device time counter in
+	// ProfilingInfoCommandEnd is a 64-bit value that describes the current device time counter in
 	// nanoseconds when the command identified by event has finished
 	// execution on the device.
 	ProfilingInfoCommandEnd ProfilingInfo = C.CL_PROFILING_COMMAND_END
@@ -388,7 +388,7 @@ func (e *Event) GetEventProfilingInfo(paramName ProfilingInfo) (int64, error) {
 	return int64(paramValue), nil
 }
 
-// Sets the execution status of a user event object.
+// SetUserEventStatus sets the execution status of a user event object.
 //
 // `status` specifies the new execution status to be set and
 // can be CL_COMPLETE or a negative integer value to indicate
@@ -399,7 +399,7 @@ func (e *Event) SetUserEventStatus(status int) error {
 	return toError(C.clSetUserEventStatus(e.clEvent, C.cl_int(status)))
 }
 
-// Waits on the host thread for commands identified by event objects in
+// WaitForEvents waits on the host thread for commands identified by event objects in
 // events to complete. A command is considered complete if its execution
 // status is CL_COMPLETE or a negative value. The events specified in
 // event_list act as synchronization points.

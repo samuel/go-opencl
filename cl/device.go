@@ -227,35 +227,35 @@ func (d *Device) MaxClockFrequency() int {
 	return int(val)
 }
 
-// The number of parallel compute units on the OpenCL device.
+// MaxComputeUnits returns the number of parallel compute units on the OpenCL device.
 // A work-group executes on a single compute unit. The minimum value is 1.
 func (d *Device) MaxComputeUnits() int {
 	val, _ := d.getInfoUint(C.CL_DEVICE_MAX_COMPUTE_UNITS, true)
 	return int(val)
 }
 
-// Max number of arguments declared with the __constant qualifier in a kernel.
+// MaxConstantArgs returns the max number of arguments declared with the __constant qualifier in a kernel.
 // The minimum value is 8 for devices that are not of type CL_DEVICE_TYPE_CUSTOM.
 func (d *Device) MaxConstantArgs() int {
 	val, _ := d.getInfoUint(C.CL_DEVICE_MAX_CONSTANT_ARGS, true)
 	return int(val)
 }
 
-// Max number of simultaneous image objects that can be read by a kernel.
+// MaxReadImageArgs returns the max number of simultaneous image objects that can be read by a kernel.
 // The minimum value is 128 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
 func (d *Device) MaxReadImageArgs() int {
 	val, _ := d.getInfoUint(C.CL_DEVICE_MAX_READ_IMAGE_ARGS, true)
 	return int(val)
 }
 
-// Maximum number of samplers that can be used in a kernel. The minimum
+// MaxSamplers returns the maximum number of samplers that can be used in a kernel. The minimum
 // value is 16 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE. (Also see sampler_t.)
 func (d *Device) MaxSamplers() int {
 	val, _ := d.getInfoUint(C.CL_DEVICE_MAX_SAMPLERS, true)
 	return int(val)
 }
 
-// Maximum dimensions that specify the global and local work-item IDs used
+// MaxWorkItemDimensions returns the maximum dimensions that specify the global and local work-item IDs used
 // by the data parallel execution model. (Refer to clEnqueueNDRangeKernel).
 // The minimum value is 3 for devices that are not of type CL_DEVICE_TYPE_CUSTOM.
 func (d *Device) MaxWorkItemDimensions() int {
@@ -263,7 +263,7 @@ func (d *Device) MaxWorkItemDimensions() int {
 	return int(val)
 }
 
-// Max number of simultaneous image objects that can be written to by a
+// MaxWriteImageArgs returns the max number of simultaneous image objects that can be written to by a
 // kernel. The minimum value is 8 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
 func (d *Device) MaxWriteImageArgs() int {
 	val, _ := d.getInfoUint(C.CL_DEVICE_MAX_WRITE_IMAGE_ARGS, true)
@@ -313,39 +313,39 @@ func (d *Device) NativeVectorWidthHalf() int {
 	return int(val)
 }
 
-// Max height of 2D image in pixels. The minimum value is 8192
+// Image2DMaxHeight returns the max height of 2D image in pixels. The minimum value is 8192
 // if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
 func (d *Device) Image2DMaxHeight() int {
 	val, _ := d.getInfoSize(C.CL_DEVICE_IMAGE2D_MAX_HEIGHT, true)
 	return int(val)
 }
 
-// Max width of 2D image or 1D image not created from a buffer object in
+// Image2DMaxWidth returns the max width of 2D image or 1D image not created from a buffer object in
 // pixels. The minimum value is 8192 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
 func (d *Device) Image2DMaxWidth() int {
 	val, _ := d.getInfoSize(C.CL_DEVICE_IMAGE2D_MAX_WIDTH, true)
 	return int(val)
 }
 
-// Max depth of 3D image in pixels. The minimum value is 2048 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
+// Image3DMaxDepth returns the max depth of 3D image in pixels. The minimum value is 2048 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
 func (d *Device) Image3DMaxDepth() int {
 	val, _ := d.getInfoSize(C.CL_DEVICE_IMAGE3D_MAX_DEPTH, true)
 	return int(val)
 }
 
-// Max height of 3D image in pixels. The minimum value is 2048 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
+// Image3DMaxHeight returns the max height of 3D image in pixels. The minimum value is 2048 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
 func (d *Device) Image3DMaxHeight() int {
 	val, _ := d.getInfoSize(C.CL_DEVICE_IMAGE3D_MAX_HEIGHT, true)
 	return int(val)
 }
 
-// Max width of 3D image in pixels. The minimum value is 2048 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
+// Image3DMaxWidth returns the max width of 3D image in pixels. The minimum value is 2048 if CL_DEVICE_IMAGE_SUPPORT is CL_TRUE.
 func (d *Device) Image3DMaxWidth() int {
 	val, _ := d.getInfoSize(C.CL_DEVICE_IMAGE3D_MAX_WIDTH, true)
 	return int(val)
 }
 
-// Max size in bytes of the arguments that can be passed to a kernel. The
+// MaxParameterSize returns the max size in bytes of the arguments that can be passed to a kernel. The
 // minimum value is 1024 for devices that are not of type CL_DEVICE_TYPE_CUSTOM.
 // For this minimum value, only a maximum of 128 arguments can be passed to a kernel.
 func (d *Device) MaxParameterSize() int {
@@ -353,7 +353,7 @@ func (d *Device) MaxParameterSize() int {
 	return int(val)
 }
 
-// Maximum number of work-items in a work-group executing a kernel on a
+// MaxWorkGroupSize returns the maximum number of work-items in a work-group executing a kernel on a
 // single compute unit, using the data parallel execution model. (Refer
 // to clEnqueueNDRangeKernel). The minimum value is 1.
 func (d *Device) MaxWorkGroupSize() int {
@@ -361,27 +361,27 @@ func (d *Device) MaxWorkGroupSize() int {
 	return int(val)
 }
 
-// Describes the resolution of device timer. This is measured in nanoseconds.
+// ProfilingTimerResolution describes the resolution of device timer. This is measured in nanoseconds.
 func (d *Device) ProfilingTimerResolution() int {
 	val, _ := d.getInfoSize(C.CL_DEVICE_PROFILING_TIMER_RESOLUTION, true)
 	return int(val)
 }
 
-// Size of local memory arena in bytes. The minimum value is 32 KB for
+// LocalMemSize returns the size of local memory arena in bytes. The minimum value is 32 KB for
 // devices that are not of type CL_DEVICE_TYPE_CUSTOM.
 func (d *Device) LocalMemSize() int64 {
 	val, _ := d.getInfoUlong(C.CL_DEVICE_LOCAL_MEM_SIZE, true)
 	return val
 }
 
-// Max size in bytes of a constant buffer allocation. The minimum value is
+// MaxConstantBufferSize returns the max size in bytes of a constant buffer allocation. The minimum value is
 // 64 KB for devices that are not of type CL_DEVICE_TYPE_CUSTOM.
 func (d *Device) MaxConstantBufferSize() int64 {
 	val, _ := d.getInfoUlong(C.CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, true)
 	return val
 }
 
-// Max size of memory object allocation in bytes. The minimum value is max
+// MaxMemAllocSize returns the max size of memory object allocation in bytes. The minimum value is max
 // (1/4th of CL_DEVICE_GLOBAL_MEM_SIZE, 128*1024*1024) for devices that are
 // not of type CL_DEVICE_TYPE_CUSTOM.
 func (d *Device) MaxMemAllocSize() int64 {
@@ -436,7 +436,7 @@ func (d *Device) Type() DeviceType {
 	return DeviceType(deviceType)
 }
 
-// Describes double precision floating-point capability of the OpenCL device
+// DoubleFPConfig describes double precision floating-point capability of the OpenCL device
 func (d *Device) DoubleFPConfig() FPConfig {
 	var fpConfig C.cl_device_fp_config
 	if err := C.clGetDeviceInfo(d.id, C.CL_DEVICE_DOUBLE_FP_CONFIG, C.size_t(unsafe.Sizeof(fpConfig)), unsafe.Pointer(&fpConfig), nil); err != C.CL_SUCCESS {
@@ -445,7 +445,7 @@ func (d *Device) DoubleFPConfig() FPConfig {
 	return FPConfig(fpConfig)
 }
 
-// Describes the OPTIONAL half precision floating-point capability of the OpenCL device
+// HalfFPConfig describes the OPTIONAL half precision floating-point capability of the OpenCL device
 func (d *Device) HalfFPConfig() FPConfig {
 	var fpConfig C.cl_device_fp_config
 	if err := C.clGetDeviceInfo(d.id, C.CL_DEVICE_HALF_FP_CONFIG, C.size_t(unsafe.Sizeof(fpConfig)), unsafe.Pointer(&fpConfig), nil); err != C.CL_SUCCESS {
@@ -454,7 +454,7 @@ func (d *Device) HalfFPConfig() FPConfig {
 	return FPConfig(fpConfig)
 }
 
-// Type of local memory supported. This can be set to CL_LOCAL implying dedicated
+// LocalMemType returns the type of local memory supported. This can be set to CL_LOCAL implying dedicated
 // local memory storage such as SRAM, or CL_GLOBAL. For custom devices, CL_NONE
 // can also be returned indicating no local memory support.
 func (d *Device) LocalMemType() LocalMemType {
@@ -465,7 +465,7 @@ func (d *Device) LocalMemType() LocalMemType {
 	return LocalMemType(memType)
 }
 
-// Describes the execution capabilities of the device. The mandated minimum capability is CL_EXEC_KERNEL.
+// ExecutionCapabilities describes the execution capabilities of the device. The mandated minimum capability is CL_EXEC_KERNEL.
 func (d *Device) ExecutionCapabilities() ExecCapability {
 	var execCap C.cl_device_exec_capabilities
 	if err := C.clGetDeviceInfo(d.id, C.CL_DEVICE_EXECUTION_CAPABILITIES, C.size_t(unsafe.Sizeof(execCap)), unsafe.Pointer(&execCap), nil); err != C.CL_SUCCESS {
@@ -482,7 +482,7 @@ func (d *Device) GlobalMemCacheType() MemCacheType {
 	return MemCacheType(memType)
 }
 
-// Maximum number of work-items that can be specified in each dimension of the work-group to clEnqueueNDRangeKernel.
+// MaxWorkItemSizes returns the maximum number of work-items that can be specified in each dimension of the work-group to clEnqueueNDRangeKernel.
 //
 // Returns n size_t entries, where n is the value returned by the query for CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS.
 //

@@ -21,4 +21,5 @@ package cl
 import "C"
 import "errors"
 
+// ErrUnsupported is the rror returned when some functionality is not support
 var ErrUnsupported = errors.New("cl: unsupported")
