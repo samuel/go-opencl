@@ -2,6 +2,8 @@ package cl
 
 import (
 	"math/rand"
+	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -16,6 +18,64 @@ __kernel void square(
        output[i] = input[i] * input[i];
 }
 `
+
+func getObjectStrings(object interface{}) map[string]string {
+	v := reflect.ValueOf(object)
+	t := reflect.TypeOf(object)
+
+	strs := make(map[string]string)
+
+	numMethods := t.NumMethod()
+	for i := 0; i < numMethods; i++ {
+		method := t.Method(i)
+		if method.Type.NumIn() == 1 && method.Type.NumOut() == 1 && method.Type.Out(0).Kind() == reflect.String {
+			// this is a string-returning method with (presumably) only a pointer receiver parameter
+			// call it
+			outs := v.Method(i).Call([]reflect.Value{})
+			// put the result in our map
+			strs[method.Name] = (outs[0].Interface()).(string)
+		}
+	}
+
+	return strs
+}
+
+func TestPlatformStringsContainNoNULs(t *testing.T) {
+	platforms, err := GetPlatforms()
+	if err != nil {
+		t.Fatalf("Failed to get platforms: %+v", err)
+	}
+
+	for _, p := range platforms {
+		for key, value := range getObjectStrings(p) {
+			if strings.Contains(value, "\x00") {
+				t.Fatalf("platform string %q =  %+q contains NUL", key, value)
+			}
+		}
+	}
+}
+
+func TestDeviceStringsContainNoNULs(t *testing.T) {
+	platforms, err := GetPlatforms()
+	if err != nil {
+		t.Fatalf("Failed to get platforms: %+v", err)
+	}
+
+	for _, p := range platforms {
+		devs, err := p.GetDevices(DeviceTypeAll)
+		if err != nil {
+			t.Fatalf("Failed to get devices for platform %q: %+v", p.Name(), err)
+		}
+
+		for _, d := range devs {
+			for key, value := range getObjectStrings(d) {
+				if strings.Contains(value, "\x00") {
+					t.Fatalf("device string %q =  %+q contains NUL", key, value)
+				}
+			}
+		}
+	}
+}
 
 func TestHello(t *testing.T) {
 	var data [1024]float32
