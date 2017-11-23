@@ -1,7 +1,11 @@
 package cl
 
 // #include <stdlib.h>
-// #include "cl.h"
+// #ifdef __APPLE__
+// #include "OpenCL/opencl.h"
+// #else
+// #include "CL/opencl.h"
+// #endif
 import "C"
 
 import (
@@ -40,7 +44,7 @@ func (p *Program) BuildProgram(devices []*Device, options string) error {
 	}
 	var deviceList []C.cl_device_id
 	var deviceListPtr *C.cl_device_id
-	numDevices := C.cl_uint(0)
+	numDevices := C.cl_uint(len(devices))
 	if devices != nil && len(devices) > 0 {
 		deviceList = buildDeviceIdList(devices)
 		deviceListPtr = &deviceList[0]
