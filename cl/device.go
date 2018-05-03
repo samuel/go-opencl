@@ -1,6 +1,7 @@
 package cl
 
 // #include "cl.h"
+// #include "cl_ext.h"
 import "C"
 
 import (
